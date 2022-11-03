@@ -136,7 +136,7 @@ public abstract class SocketClient {
             if (password.equals("")) 
             {
                 
-                password = "...";
+                password = "dEE?m,2s8GU9cpvv,Xfq";
                 break;
                 
                 //System.out.println("No password entered! Please enter your password: ");
@@ -382,10 +382,11 @@ public abstract class SocketClient {
             String receiver = ""; 
             String subject = ""; 
             StringBuilder text = new StringBuilder();
-
+            
             boolean startBody = false; 
             while (true) 
             { // Loop through all lines of the message
+
                 String newLine = reader.readLine(); // Read the next line
 
                 if (newLine.equals(".")) 
@@ -397,7 +398,7 @@ public abstract class SocketClient {
                 if (newLine.startsWith("   ") || newLine.startsWith(" ") ) 
                 {
                     line += newLine;
-                } 
+                }
                 else 
                 {
                     if (line.startsWith("-ERR")) 
@@ -464,8 +465,10 @@ public abstract class SocketClient {
 
                     if (startBody) 
                     { 
-                        String decodeUmlauts = line.replaceAll("=([0-9A-Fa-f]{2})", "%$1");
-                        text.append(URLDecoder.decode(decodeUmlauts, "utf-8")).append("\n"); 
+                        //String decodeUmlauts = line.replaceAll("=([0-9A-Fa-f]{2})", "%$1");
+                        //text.append(line).append("\n"); 
+                        String decoded = new String(line.getBytes("ISO-8859-1"), "UTF-8");
+                        text.append(decoded).append("\n");
                     }
 
                     line = newLine;
@@ -477,6 +480,7 @@ public abstract class SocketClient {
             System.out.println("Subject: " + subject);
             System.out.println("======================== Text =============================");
             System.out.println(text);
+            
         }
 
         private String decypher(String text) throws IOException
