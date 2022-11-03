@@ -7,6 +7,12 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.InputMismatchException;
 import java.util.Scanner;
+import java.net.URLDecoder;
+import java.util.Base64;
+import java.io.*;
+
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
 
 
 public abstract class SocketClient {
@@ -37,28 +43,77 @@ public abstract class SocketClient {
             }
         }
 
-        System.out.println("Enter the port you want to connect to (110): ");
-        int portNumber = 0;
+        //enable ssl connection?
+        boolean ssl = false;
+        System.out.println("Do you want to connect to the server with SSL? [yes]/[no]");
+        
+        while(true)
+        {
+            String answer = scanner.nextLine();
+
+            //== doesnt work so i used equals
+            if(answer.equals("yes"))
+            {
+                ssl = true;
+                break;
+            }
+            else if(answer.equals("no"))
+            {
+                ssl = false;
+                break;
+            }
+            else
+            {
+                System.out.println("No valid input, please try again!");
+            }
+        }
+
+
+        
+
+        System.out.println("Enter the port you want to connect to [995]/[110]: ");
+        int port;
         while (true)
         {
+            String portNumber = scanner.nextLine();
+            if(portNumber == "")
+            {
+                if(ssl == true)
+                {
+                    port = 995;
+                    break;
+                }
+                else
+                {
+                    port = 110;
+                    break;
+                }
+            }
             try
             {
-                portNumber = scanner.nextInt();
+                port=Integer.parseInt(portNumber);
+                break;
             }
-            catch(InputMismatchException e)
+        
+            catch(NumberFormatException e)
             {
                 System.out.println("Only numbers are valid inputs. Try again!");
-                scanner.nextLine();
+                
             }
-            scanner.nextLine();
-            break;
         }
+
 
         System.out.println("Enter your email adress ('max.mustermensch@uni-jena.de'): ");
         String email;
         while (true) 
         {
             email = scanner.nextLine();
+
+            if(email.equals(""))
+            {
+                email = "patrick.stahl@uni-jena.de";
+                break;
+            }
 
             if(email.contains("@"))
             {
@@ -80,12 +135,11 @@ public abstract class SocketClient {
             //if user doesnt enter a password he has to try again until he does
             if (password.equals("")) 
             {
-                /** 
-                * too lazy to type it every time
-                * password = "...";
-                * break;
-                */
-                System.out.println("No password entered! Please enter your password: ");
+                
+                password = "...";
+                break;
+                
+                //System.out.println("No password entered! Please enter your password: ");
             } 
             else 
             {
@@ -96,10 +150,11 @@ public abstract class SocketClient {
         //new Client object
         Client client = new Client();
         //connect to host
-        client.connect(host, portNumber);
+
+        client.connect(host, port);
         //log in with user data
         client.authenticate(email, password);
-        System.out.println("Connected to " + host + " on port " + portNumber + " as " + email);
+        System.out.println("Connected to " + host + " on port " + port + " as " + email);
 
         //Print all message indexes, their date and subject
         System.out.println("========================================");
@@ -139,6 +194,7 @@ public abstract class SocketClient {
                 //if the command is not an integer or "close", print an error message
                 System.out.println("Invalid input!");
                 System.out.println("========================================");
+                e.printStackTrace();
             }
         }
 
@@ -151,8 +207,14 @@ public abstract class SocketClient {
     private static class Client 
     {
         
-        //endpoint for communication with server
+        //less secure socket
         Socket socket;
+
+        //sslsocket
+        SSLSocket sslSocket;
+
+        //use ssl
+        boolean ssl;
 
         //read messages from server
         BufferedReader reader;
@@ -171,13 +233,29 @@ public abstract class SocketClient {
 
         public void connect(String host, int port) throws Exception 
         {
-            socket = new Socket(host, port);
-            //reads the chars or bytes or whatever, sent from the server and translates them into strings
-            reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            //sends commands to the server; autoflush automatically clears (flushes) the data
-            writer = new PrintWriter(socket.getOutputStream(), true);
-            //reads the stuff that the server sends 
-            line = reader.readLine();
+
+            if(ssl == true)
+            {
+                //what does this do?
+                SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+                sslSocket = (SSLSocket) factory.createSocket(host, port);
+                //sslSocket.setKeepAlive(true);
+                reader = new BufferedReader(new InputStreamReader(sslSocket.getInputStream()));
+                writer = new PrintWriter(sslSocket.getOutputStream(), true);
+                line = reader.readLine();
+            }
+
+            else
+            {
+                socket = new Socket(host, port);
+                //socket. setKeepAlive(true);
+                //reads the chars or bytes or whatever, sent from the server and translates them into strings
+                reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                //sends commands to the server; autoflush automatically clears (flushes) the data
+                writer = new PrintWriter(socket.getOutputStream(), true);
+                //reads the stuff that the server sends 
+                line = reader.readLine();
+            }
         }
 
         /**
@@ -229,32 +307,45 @@ public abstract class SocketClient {
                 //date of message
                 String date = ""; 
                 //subject of message
-                String subject = "";
+                StringBuilder subject = new StringBuilder();
 
-                //loops through the whole mail ("." is always generated at the end)
                 while (!line.equals(".")) 
                 { 
-                    if (line.startsWith("Date: ") && !foundDate) 
+                    if (line.toLowerCase().startsWith("date: ") && !foundDate) 
                     { 
-                        //If the line starts with "Date: " and the date has not been printed yet
-                        //substring begins at 6th character and goes until the end of the string
-                        date = line.substring(6);
+                        date = line.substring(6); 
                         foundDate = true; 
                     }
 
                     if (line.startsWith("Subject: ") && !foundSubject) 
                     { 
-                        subject = reader.readLine();
-                        //subject = line.substring(9); 
+                        subject = new StringBuilder(line.substring(9)); 
                         foundSubject = true; 
+
+                        //while the line starts with " " it still belongs to the subject
+                        do 
+                        {
+                            line = reader.readLine();
+                            if (line.startsWith(" ")) 
+                            { 
+                                //If the line starts with " " remove the " " and append it to the rest of the subject
+                                subject.append(line.substring(1));
+                            }
+                        } 
+                        //If the next line starts with "Subject: ", read the next line
+                        while (line.startsWith(" ")); 
+                        //Continue so that the next line isnt skipped
+                        continue;
                     }
 
-                    line = reader.readLine();
-                    
+                    line = reader.readLine(); 
                 }
 
+                String[] dateParts = date.split(" "); 
+                date = dateParts[0] + " " + dateParts[1] + " " + dateParts[2] + " " + dateParts[3] + " " + dateParts[4]; // get the first 5 parts of the date
+
                 System.out.print("Date: " + date + ", "); 
-                System.out.println("Subject: " + subject.substring(9)); 
+                System.out.println("Subject: " + decypher(subject.toString())); 
                 System.out.println(); 
             }
         }
@@ -279,18 +370,196 @@ public abstract class SocketClient {
          * @param messageNumber The number of the message that should be printed
          * @throws IOException If the reading of the emails fails
          */
+
+
         public void printMessage(int messageNumber) throws IOException 
         {
             //Returns: +OK message follows, <message>, .
             writer.println("RETR " + messageNumber); 
-            line = reader.readLine(); 
-            while (!line.equals(".")) 
-            {
-                //print current line and read next line
-                System.out.println(line); 
-                line = reader.readLine();
+
+            String sender = ""; 
+            String date = ""; 
+            String receiver = ""; 
+            String subject = ""; 
+            StringBuilder text = new StringBuilder();
+
+            boolean startBody = false; 
+            while (true) 
+            { // Loop through all lines of the message
+                String newLine = reader.readLine(); // Read the next line
+
+                if (newLine.equals(".")) 
+                {
+                    break;
+                }
+
+                // if the newLine starts with "    " or " ", add newLine to line
+                if (newLine.startsWith("   ") || newLine.startsWith(" ") ) 
+                {
+                    line += newLine;
+                } 
+                else 
+                {
+                    if (line.startsWith("-ERR")) 
+                    { 
+                        System.out.println("Message not found!"); 
+                        break;
+                    } 
+                    else if (line.equals(".")) 
+                    { 
+                        break; 
+                    }
+
+                    // avoid image base64 blocks because of overflows
+                    if (line.toLowerCase().startsWith("content-transfer-encoding: base64") || line.toLowerCase().startsWith("content-type: image/")) 
+                    {
+                        while (!line.equals(".")) 
+                        { 
+                            line = reader.readLine(); 
+                        }
+                        break;
+                    }
+
+                    if (line.toLowerCase().startsWith("from: ")) 
+                    { 
+                        //Trim removes "     "
+                        sender = line.substring(6).trim(); 
+                        if (sender.contains("<")) 
+                        {
+                            sender = sender.substring(sender.indexOf("<") + 1, sender.indexOf(">"));
+                        }
+                    }
+
+                    else if (line.toLowerCase().startsWith("date: ")) 
+                    { 
+                        String[] dateParts = line.substring(6).split(" "); 
+                        //Date: Thu, 19 Aug 2021 08:32:18 +0200 (CEST)
+                        date = dateParts[0] + " " + dateParts[1] + " " + dateParts[2] + " " + dateParts[3] + " " + dateParts[4]; // get the first 5 parts of the date
+                    }
+
+                    else if (line.toLowerCase().startsWith("to: ")) 
+                    { 
+                        
+                        receiver = line.substring(4).trim(); 
+                        if (receiver.contains("<")) 
+                        {
+                            receiver = receiver.substring(receiver.indexOf("<") + 1, receiver.indexOf(">"));
+                        }
+                    }
+
+                    else if (line.toLowerCase().startsWith("subject: ")) 
+                    { 
+                        subject = decypher(line.substring(9)); 
+                    }
+
+                    else if (line.toLowerCase().startsWith("content-type: text/plain; charset="))
+                    { 
+                        startBody = true;
+                    }
+
+                    else if(startBody == true && line.toLowerCase().startsWith("content-type: text/html; charset="))
+                    {
+                        break;
+                    }
+
+                    if (startBody) 
+                    { 
+                        String decodeUmlauts = line.replaceAll("=([0-9A-Fa-f]{2})", "%$1");
+                        text.append(URLDecoder.decode(decodeUmlauts, "utf-8")).append("\n"); 
+                    }
+
+                    line = newLine;
+                }
             }
+            System.out.println("Date: " + date);
+            System.out.println("Sender: " + sender);
+            System.out.println("Receiver: " + receiver);
+            System.out.println("Subject: " + subject);
+            System.out.println("======================== Text =============================");
+            System.out.println(text);
         }
+
+        private String decypher(String text) throws IOException
+        {
+        if (text.startsWith("=?")) 
+                { 
+                    //splits between = and ?
+                    String[] splits = text.split("=\\?");
+                    //Stringbuilder creates changeable sequences of characters (i.e. strings)
+                    StringBuilder deciphered = new StringBuilder(); 
+                    // --> =   ?iso-8859-1?Q?Mentor*innen_f=FCr_internationale_Studierende_gesucht!?   =
+        
+                    for (int i = 0; i < splits.length; i++) 
+                    {
+                        String split = splits[i];
+                        try 
+                        {
+                            //If the split is blank, skip current iteration of the loop
+                            if (split.isBlank()) 
+                            { 
+                                continue;
+                            }
+
+                            //splits the subject into parts after each "?"
+                            String[] parts = split.split("\\?"); 
+                            String charset = parts[0];
+                            //Moin --> MOIN
+                            String encoding = parts[1].toUpperCase(); 
+                            String encodedText = parts[2]; 
+
+                            /**
+                             * part[0] = iso-8859-1
+                             * part[1] = Q
+                             * part[2] = Mentor*innen_f=FCr_internationale_Studierende_gesucht!
+                             */
+
+                            if (encoding.equals("Q")) 
+                            { 
+                                //use regex because decode cant do it by itself (probably because there is no ä ö ü... in english?)
+                                encodedText = encodedText.replaceAll("=([0-9A-Fa-f]{2})", "%$1"); // Replace all "=XX" with "%XX"
+                                encodedText = encodedText.replaceAll("_", " ");
+
+                                try 
+                                {
+                                    //decodes the encoded string by the given charset
+                                    deciphered.append(URLDecoder.decode(encodedText, charset));
+                                    
+                                } 
+                                catch (UnsupportedEncodingException e) 
+                                {
+                                    e.printStackTrace();
+                                    System.out.println("Unsupported encoding: " + charset);
+                                }
+                            } 
+
+                            //TGluQWxnIGbDvHIgSW5mbyAoMjAyMik6IExlc2VhdWZnYWJlIGbDvHIgZGk=
+                            else if (encoding.equals("B")) 
+                            { 
+                                byte[] bytes = Base64.getDecoder().decode(encodedText); // Decode the encoded text
+                                try 
+                                {
+                                    deciphered.append(new String(bytes, charset)); // Decode the bytes
+                                } 
+                                catch (UnsupportedEncodingException e) 
+                                {
+                                    e.printStackTrace();
+                                    System.out.println("Unsupported encoding: " + charset);
+                                }
+                            }
+                        } 
+                        catch (Exception ignored) 
+                        {
+
+                        }
+                    }
+
+                    return deciphered.toString(); 
+                } 
+                else 
+                { // If the subject does not start with "=?"
+                    return text; // Return the subject
+                }
+            }
 
         /**
          * Closes the connection to the server
