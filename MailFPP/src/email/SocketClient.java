@@ -382,8 +382,21 @@ public abstract class SocketClient {
             String receiver = ""; 
             String subject = ""; 
             StringBuilder text = new StringBuilder();
+
             
             boolean startBody = false; 
+            // while (true)
+            // {
+            //     String newLine = reader.readLine();
+            //     text.append(newLine).append("\n");
+                
+            //     if(newLine.equals("."))
+            //     {
+            //         break;
+            //     }
+            // }
+
+
             while (true) 
             { // Loop through all lines of the message
 
@@ -394,86 +407,99 @@ public abstract class SocketClient {
                     break;
                 }
 
-                // if the newLine starts with "    " or " ", add newLine to line
-                if (newLine.startsWith("   ") || newLine.startsWith(" ") ) 
-                {
-                    line += newLine;
+                
+                if (line.startsWith("-ERR")) 
+                { 
+                    System.out.println("Message not found!"); 
+                    break;
+                } 
+                else if (line.equals(".")) 
+                { 
+                    break; 
                 }
-                else 
+
+                // avoid image base64 blocks because of overflows
+                if (line.toLowerCase().startsWith("content-transfer-encoding: base64") || line.toLowerCase().startsWith("content-type: image/")) 
                 {
-                    if (line.startsWith("-ERR")) 
+                    while (!line.equals(".")) 
                     { 
-                        System.out.println("Message not found!"); 
-                        break;
-                    } 
-                    else if (line.equals(".")) 
-                    { 
-                        break; 
+                        line = reader.readLine(); 
                     }
-
-                    // avoid image base64 blocks because of overflows
-                    if (line.toLowerCase().startsWith("content-transfer-encoding: base64") || line.toLowerCase().startsWith("content-type: image/")) 
-                    {
-                        while (!line.equals(".")) 
-                        { 
-                            line = reader.readLine(); 
-                        }
-                        break;
-                    }
-
-                    if (line.toLowerCase().startsWith("from: ")) 
-                    { 
-                        //Trim removes "     "
-                        sender = line.substring(6).trim(); 
-                        if (sender.contains("<")) 
-                        {
-                            sender = sender.substring(sender.indexOf("<") + 1, sender.indexOf(">"));
-                        }
-                    }
-
-                    else if (line.toLowerCase().startsWith("date: ")) 
-                    { 
-                        String[] dateParts = line.substring(6).split(" "); 
-                        //Date: Thu, 19 Aug 2021 08:32:18 +0200 (CEST)
-                        date = dateParts[0] + " " + dateParts[1] + " " + dateParts[2] + " " + dateParts[3] + " " + dateParts[4]; // get the first 5 parts of the date
-                    }
-
-                    else if (line.toLowerCase().startsWith("to: ")) 
-                    { 
-                        
-                        receiver = line.substring(4).trim(); 
-                        if (receiver.contains("<")) 
-                        {
-                            receiver = receiver.substring(receiver.indexOf("<") + 1, receiver.indexOf(">"));
-                        }
-                    }
-
-                    else if (line.toLowerCase().startsWith("subject: ")) 
-                    { 
-                        subject = decypher(line.substring(9)); 
-                    }
-
-                    else if (line.toLowerCase().startsWith("content-type: text/plain; charset="))
-                    { 
-                        startBody = true;
-                    }
-
-                    else if(startBody == true && line.toLowerCase().startsWith("content-type: text/html; charset="))
-                    {
-                        break;
-                    }
-
-                    if (startBody) 
-                    { 
-                        //String decodeUmlauts = line.replaceAll("=([0-9A-Fa-f]{2})", "%$1");
-                        //text.append(line).append("\n"); 
-                        String decoded = new String(line.getBytes("ISO-8859-1"), "UTF-8");
-                        text.append(decoded).append("\n");
-                    }
-
-                    line = newLine;
+                    break;
                 }
+
+
+                if (line.toLowerCase().startsWith("from: ")) 
+                { 
+                    //Trim removes "     "
+                    sender = line.substring(6).trim(); 
+                    if (sender.contains("<")) 
+                    {
+                        sender = sender.substring(sender.indexOf("<") + 1, sender.indexOf(">"));
+                    }
+                }
+
+                else if (line.toLowerCase().startsWith("date: ")) 
+                { 
+                    String[] dateParts = line.substring(6).split(" "); 
+                    //Date: Thu, 19 Aug 2021 08:32:18 +0200 (CEST)
+                    date = dateParts[0] + " " + dateParts[1] + " " + dateParts[2] + " " + dateParts[3] + " " + dateParts[4]; // get the first 5 parts of the date
+                }
+
+                else if (line.toLowerCase().startsWith("to: ")) 
+                { 
+                    
+                    receiver = line.substring(4).trim(); 
+                    if (receiver.contains("<")) 
+                    {
+                        receiver = receiver.substring(receiver.indexOf("<") + 1, receiver.indexOf(">"));
+                    }
+                }
+
+                else if (line.toLowerCase().startsWith("subject: ")) 
+                { 
+                    subject = decypher(line.substring(9)); 
+                }
+
+                else if (line.toLowerCase().startsWith("content-type: text/plain; charset="))
+                { 
+                    startBody = true;
+                }
+
+                else if(startBody == true && line.toLowerCase().startsWith("content-type: text/html; charset="))
+                {
+                    break;
+                }
+
+                if (startBody) 
+                { 
+                    if(line.endsWith("="))
+                    {
+                        line = line.substring(0, line.length()-1);
+                    }
+                    // if(line.startsWith(" "))
+                    // {
+                    //     line = line.substring(1);
+                    // }
+                                    
+                    String decoded = new String(line.getBytes("ISO-8859-1"), "UTF-8");
+                    String decodedAgain = replaceUmlauts(decoded);
+
+                    if(!(newLine.startsWith(" ")) && line.isBlank()) //and one of those isnt empty
+                    {
+                        String newAppendage = newLine.split(" ")[0];
+                        decodedAgain += newAppendage;
+                        newLine = newLine.replace(newAppendage, "");
+                        //newLine.replaceFirst(newAppendage, "");
+                    }
+
+                    text.append(decodedAgain).append("\n");
+                }
+
+                line = newLine;
+                
             }
+            //String finalText = text.toString().replace("= ", "\n");
             System.out.println("Date: " + date);
             System.out.println("Sender: " + sender);
             System.out.println("Receiver: " + receiver);
@@ -564,6 +590,28 @@ public abstract class SocketClient {
                     return text; // Return the subject
                 }
             }
+ 
+            
+
+        public String replaceUmlauts (String text)
+        {
+            text = text.replaceAll("=C3=84|=C4", "Ä");
+            text = text.replaceAll("=C3=96|=D6", "Ö");
+            text = text.replaceAll("=C3=9C|=DC", "Ü");
+            text = text.replaceAll("=C3=9F|=DF", "ß");
+            text = text.replaceAll("=C3=A4|=E4", "ä");
+            text = text.replaceAll("=C3=B6|=F6", "ö");
+            text = text.replaceAll("=C3=BC|=FC", "ü");
+
+            
+            if(text != null && text.length()>0 && text.charAt(text.length()-1) == '=')
+            {
+                text = text.substring(0, text.length()-1);
+            }
+            
+            return text;
+        }    
+
 
         /**
          * Closes the connection to the server
