@@ -485,7 +485,7 @@ public abstract class SocketClient {
                     String decoded = new String(line.getBytes("ISO-8859-1"), "UTF-8");
                     String decodedAgain = replaceUmlauts(decoded);
 
-                    if(!(newLine.startsWith(" ")) && line.isBlank()) //and one of those isnt empty
+                    if(!(newLine.startsWith(" ")) && !line.isBlank()) //and one of those isnt empty
                     {
                         String newAppendage = newLine.split(" ")[0];
                         decodedAgain += newAppendage;
