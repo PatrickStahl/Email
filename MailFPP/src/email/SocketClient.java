@@ -492,6 +492,10 @@ public abstract class SocketClient {
                         newLine = newLine.replace(newAppendage, "");
                         //newLine.replaceFirst(newAppendage, "");
                     }
+                    if(decodedAgain.startsWith(" "))
+                    {
+                        decodedAgain = decodedAgain.substring(1);
+                    }
 
                     text.append(decodedAgain).append("\n");
                 }
