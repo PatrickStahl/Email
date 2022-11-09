@@ -172,29 +172,36 @@ public abstract class SocketClient {
             String command = scanner.nextLine();
 
             //Check if the command is "close"
-            try 
-            {
-                if (command.equals("close")) 
-                { 
-                    System.out.println("========================================");
-                    break;
-                } 
-                else
-                { 
-                    //if the command is not close, try to parse it as an integer
-                    System.out.println("========================================");
-                    //parseInt converts the String (if constistent of numbers into an int variable)
-                    int messageNumber = Integer.parseInt(command);
-                    client.printMessage(messageNumber); 
-                    System.out.println("========================================");
-                }
-            } 
-            catch (Exception e) 
+            if (command.equals("close")) 
             { 
-                //if the command is not an integer or "close", print an error message
-                System.out.println("Invalid input!");
                 System.out.println("========================================");
-                e.printStackTrace();
+                break;
+            } 
+            else
+            {
+                try 
+                {
+                    int messageNumber = Integer.parseInt(command);
+                    
+                    if(messageNumber < 0 || messageNumber > totalAmount)
+                    {
+                        System.out.println("No valid message number, please try again or type 'close' to exit");
+                        System.out.println("========================================");
+                    }
+                    else
+                    {
+                        System.out.println("========================================");
+                        client.printMessage(messageNumber); 
+                        System.out.println("========================================");
+                    }
+                } 
+                catch (Exception e) 
+                { 
+                    //if the command is not an integer or "close", print an error message
+                    System.out.println("Invalid input!");
+                    System.out.println("========================================");
+                    e.printStackTrace();
+                }
             }
         }
 
@@ -400,7 +407,7 @@ public abstract class SocketClient {
             while (true) 
             { // Loop through all lines of the message
 
-                String newLine = reader.readLine(); // Read the next line
+                String newLine = reader.readLine(); //Read the next line
 
                 if (newLine.equals(".")) 
                 {
@@ -461,12 +468,12 @@ public abstract class SocketClient {
                     subject = decypher(line.substring(9)); 
                 }
 
-                else if (line.toLowerCase().startsWith("content-type: text/plain; charset="))
+                else if (line.toLowerCase().startsWith("content-transfer-encoding: "))
                 { 
                     startBody = true;
                 }
 
-                else if(startBody == true && line.toLowerCase().startsWith("content-type: text/html; charset="))
+                else if(startBody == true && line.toLowerCase().contains("content-type: text/html; charset="))
                 {
                     break;
                 }
@@ -477,27 +484,29 @@ public abstract class SocketClient {
                     {
                         line = line.substring(0, line.length()-1);
                     }
-                    // if(line.startsWith(" "))
-                    // {
-                    //     line = line.substring(1);
-                    // }
                                     
                     String decoded = new String(line.getBytes("ISO-8859-1"), "UTF-8");
-                    String decodedAgain = replaceUmlauts(decoded);
+                    decoded = replaceUmlauts(decoded);
 
-                    if(!(newLine.startsWith(" ")) && !line.isBlank()) //and one of those isnt empty
+                    if(!(newLine.startsWith(" ")) && !line.isBlank() && !line.endsWith(" ") && !line.endsWith(".") ) 
                     {
                         String newAppendage = newLine.split(" ")[0];
-                        decodedAgain += newAppendage;
-                        newLine = newLine.replace(newAppendage, "");
-                        //newLine.replaceFirst(newAppendage, "");
+                        newAppendage = replaceUmlauts(newAppendage);
+                        if(!newLine.toLowerCase().contains("content-type: text/html; charset="))
+                        {
+                            decoded += newAppendage;
+                            newLine = newLine.replace(newAppendage, "");
+                        }
                     }
-                    if(decodedAgain.startsWith(" "))
+                    if(decoded.startsWith(" "))
                     {
-                        decodedAgain = decodedAgain.substring(1);
+                        decoded = decoded.substring(1);
                     }
 
-                    text.append(decodedAgain).append("\n");
+                    if(!decoded.contains("Content-Type: ") && !decoded.contains("Content-Transfer-Encoding: "))
+                    {
+                        text.append(decoded).append("\n");
+                    }
                 }
 
                 line = newLine;

@@ -1,10 +1,3 @@
-/**
- * muss hier noch die nutzerdaten eingeben lassen 
- * und paar methoden einbauen dass man email wie 
- * im meilenstein einzeln anzeigen lassen kann
- */
-
-
 package email;
 
 import com.sun.mail.pop3.POP3SSLStore;
@@ -13,212 +6,303 @@ import javax.mail.*;
 import javax.mail.internet.MimeMultipart;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.Scanner;
 
 public abstract class JavaMailClient {
 
-    public static void main() throws Exception {
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-
-        // Get the host that the user wants to connect to, default to pop3.uni-jena.de
-        System.out.println("[OPTIONAL] Enter the host you want to connect to ('pop3.uni-jena.de'): ");
+    public static void main() throws Exception 
+    {
+        System.out.println("Enter the host you want to connect to ('pop3.uni-jena.de'): ");
         String host;
-        while (true) {
-            host = br.readLine();
+        Scanner scanner = new Scanner(System.in);
+        while (true) 
+        {
+            host = scanner.nextLine();
 
-            // if the input was empty, use the default value
-            if (host.equals("")) {
+            //i was too lazy to type it every time
+            if (host.equals(""))
+            {
                 host = "pop3.uni-jena.de";
                 break;
             }
-
-            // if the input contains a space, it is invalid, else it is valid
-            if (host.contains(" ")) {
+            if (host.contains(" ")) 
+            {
                 System.out.println("Host cannot contain spaces!");
-            } else {
+            }
+            //user typed a valid server name (syntaxwise)
+            else 
+            {
                 break;
             }
         }
 
-        // Check whether the user wants to connect with or without SSL
-        System.out.println("[REQUIRED] Do you want to connect with SSL? (y/n): ");
-        boolean secure = false;
-        while (true) {
-            String secureInput = br.readLine();
+        //enable ssl connection?
+        boolean ssl = false;
+        System.out.println("Do you want to connect to the server with SSL? [yes]/[no]");
+        
+        while(true)
+        {
+            String answer = scanner.nextLine();
 
-            // if the input is not a number, it is invalid, else it is valid
-            if (secureInput.equalsIgnoreCase("y")) {
-                secure = true;
+            //== doesnt work so i used equals
+            if(answer.equals("yes"))
+            {
+                ssl = true;
                 break;
-            } else if (secureInput.equalsIgnoreCase("n")) {
+            }
+            else if(answer.equals("no"))
+            {
+                ssl = false;
                 break;
-            } else {
-                System.out.println("Invalid input. Please enter 'y' or 'n': ");
+            }
+            else
+            {
+                System.out.println("No valid input, please try again!");
             }
         }
 
-        // Get the port that the user wants to connect to, default to 110 / 995 (depending on whether SSL is used)
-        System.out.println("[OPTIONAL] Enter the port you want to connect to ('" + (secure ? "995" : "110") + "'): ");
-        int portNumber = secure ? 995 : 110;
-        while (true) {
-            String port = br.readLine();
 
-            // if the input was empty, use the default value
-            if (port.equals("")) {
+        System.out.println("Enter the port you want to connect to [995]/[110]: ");
+        int port;
+        while (true)
+        {
+            String portNumber = scanner.nextLine();
+            if(portNumber == "")
+            {
+                if(ssl == true)
+                {
+                    port = 995;
+                    break;
+                }
+                else
+                {
+                    port = 110;
+                    break;
+                }
+            }
+            try
+            {
+                port=Integer.parseInt(portNumber);
                 break;
             }
-
-            // if the input is not a number, it is invalid, else it is valid
-            try {
-                portNumber = Integer.parseInt(port);
-                break;
-            } catch (NumberFormatException e) {
-                System.out.println("Invalid port number. Please enter a valid port number or leave the field empty to use the default port (" + (secure ? "995" : "110") + "): ");
+        
+            catch(NumberFormatException e)
+            {
+                System.out.println("Only numbers are valid inputs. Try again!");
+                
             }
         }
 
-        // Get the username that the user wants to use
-        System.out.println("[REQUIRED] Enter your username ('max.mustermann'): ");
+
+        System.out.println("Enter your email adress ('max.mustermensch@uni-jena.de'): ");
         String email;
-        while (true) {
-            email = br.readLine();
+        while (true) 
+        {
+            email = scanner.nextLine();
 
-            // if the input is empty, it is invalid, else it is valid
-            if (email.equals("")) {
-                System.out.println("No username entered! Please enter your username ('max.mustermann'): ");
-            } else {
-                // if the username already contains @uni-jena.de, remove it
-                email = email.replace("@uni-jena.de", "");
+            if(email.equals(""))
+            {
+                email = "patrick.stahl@uni-jena.de";
                 break;
             }
-        }
-        // append the @uni-jena.de to the username, so that it is a valid email address
-        email = email + "@uni-jena.de";
 
-        // Get the password that the user wants to use
-        System.out.println("[REQUIRED] Enter your password ('password'): ");
+            if(email.contains("@"))
+            {
+                break;
+            }
+            else
+            {
+                System.out.println("No valid email entered! (max.mustermensch@uni-jena.de)");
+            }
+        }
+
+        System.out.println("Enter your password ('password'): ");
         String password;
-        while (true) {
-            password = br.readLine();
+        while (true) 
+        {
+            password = scanner.nextLine();
 
-            // if the input is empty, it is invalid, else it is valid
-            if (password.equals("")) {
-                System.out.println("No password entered! Please enter your password: ");
-            } else {
+            if (password.equals("")) 
+            {
+                
+                password = "dEE?m,2s8GU9cpvv,Xfq";
+                break;
+                
+                //System.out.println("No password entered! Please enter your password: ");
+            } 
+            else 
+            {
                 break;
             }
         }
 
-        // Create a new Properties object
+        //to set up the values used to connect to the server 
         java.util.Properties properties = new java.util.Properties();
 
-        // Set the host and port
+        //Set the host and port
         properties.setProperty("mail.pop3.host", host);
-        properties.setProperty("mail.pop3.port", String.valueOf(portNumber));
+        properties.setProperty("mail.pop3.port", String.valueOf(port));
 
-        // Set the SSL property if SSL is used
-        if (secure) {
+        //if user wants ssl another property is added
+        if (ssl == true) 
+        {
             properties.setProperty("mail.pop3.ssl.enable", "true");
         }
 
-        // Create a new Session object
+        //create mailSession with given properties
         Session session = Session.getInstance(properties);
 
-        // Create a new Store object
+        //Create (SSL)Store object to store and retrieve messages 
         POP3SSLStore sslStore = null;
         Store store = null;
-        if (secure) {
+        if (ssl == true) 
+        {
             sslStore = new POP3SSLStore(session, null);
-        } else {
+        } 
+        else 
+        {
             store = session.getStore("pop3");
+            //store = new POP3SSLStore(session, null);
         }
 
-        // Connect to the server
-        if (secure) {
-            sslStore.connect(host, portNumber, email, password);
-        } else {
-            store.connect(host, portNumber, email, password);
+        //connect to server
+        if (ssl == true) 
+        {
+            sslStore.connect(host, port, email, password);
+        } 
+        else 
+        {
+            store.connect(host, port, email, password);
         }
 
-        // Get the inbox folder
-        Folder inbox = secure ? sslStore.getFolder("INBOX") : store.getFolder("INBOX");
+        //get the inbox folder (where messages are stored)
+        Folder inbox;
+        if(ssl == true)
+        {
+            inbox = sslStore.getFolder("INBOX");
+        }
+        else
+        {
+            inbox = store.getFolder("INBOX");
+        }
+        
 
-        // Open the inbox folder
+        //Open the inbox folder
         inbox.open(Folder.READ_ONLY);
 
-        // Get the messages in the inbox folder
+        //Array with messages from inbox folder
         Message[] messages = inbox.getMessages();
 
-        // print all messages (Format: "[<index>] Date: <date>, Subject: <subject>")
+        //[<index>] Date: <date>, Subject: <subject>
         System.out.println("================================================================================");
-        for (int i = 0; i < messages.length; i++) {
+        //gets date and subject of all messages 
+        //i < messages.length
+        for (int i = 0; i < 5; i++) 
+        {
             System.out.println("[" + i + "] Date: " + messages[i].getSentDate() + ", Subject: " + messages[i].getSubject());
-            System.out.println(); // Print a new line
+            System.out.println();
         }
         System.out.println("================================================================================");
         System.out.println("Total amount of messages: " + messages.length);
 
 
-        // Listen for commands from the user
-        while (true) {
+        //user can choose whether to close the program or to display a specific message
+        while (true) 
+        {
             System.out.println("Enter the number of the message you want to read or close to exit: ");
 
-            // Get the command from the user
-            String command = br.readLine();
+            String command = scanner.nextLine();
 
-            if ("close".equals(command)) {// Close the connection to the server
+            if (command.equals("close")) 
+            {
                 System.out.println("================================================================================");
                 break;
-            } else {// if the input is not a number, it is invalid, else it is valid
-                try {
+            } 
+            else 
+            {
+                //catch inputs that arent numbers or "close"
+                try 
+                {
                     int index = Integer.parseInt(command);
 
-                    // if the index is out of bounds, it is invalid, else it is valid
-                    if (index < 0 || index >= messages.length) {
+                    //out of bounds exception
+                    if (index < 0 || index >= messages.length) 
+                    {
                         System.out.println("Invalid index. Please enter a valid index or 'close' to exit: ");
                         System.out.println("================================================================================");
-                    } else {
-                        String sender = messages[index].getFrom()[0].toString();
-                        if (sender.contains("<")) {
-                            sender = sender.substring(sender.indexOf("<") + 1, sender.indexOf(">"));
+                    } 
+                    else 
+                    {
+                        String receiver = "";
+                        for(int i = 0; i < messages[index].getAllRecipients().length; i++)
+                        {
+                            String receiverTemp = messages[index].getAllRecipients()[i].toString();
+                            if(receiverTemp.contains("<"))
+                            {
+                                receiverTemp = receiverTemp.substring(receiverTemp.indexOf("<") + 1,  receiverTemp.indexOf(">"));
+                            }
+                            if(i == 0)
+                            {
+                                receiver = receiverTemp;
+                            }
+                            else                             
+                            {
+                                receiver = receiver + ", " + receiverTemp;
+                            }
+                            
+                            //System.out.println(messages[index].getAllRecipients()[i]);
                         }
-                        String receiver = messages[index].getAllRecipients()[0].toString();
-                        if (receiver.contains("<")) {
-                            receiver = receiver.substring(receiver.indexOf("<") + 1, receiver.indexOf(">"));
+                        String sender = messages[index].getFrom()[0].toString();
+                        if (sender.toString().contains("<")) 
+                        {
+                            sender = sender.toString().substring(sender.indexOf("<") + 1, sender.indexOf(">"));
                         }
 
-                        // print the message
+                        // String receiver = messages[index].getAllRecipients()[0].toString();
+                        // if (receiver.contains("<")) 
+                        // {
+                        //     receiver = receiver.substring(receiver.indexOf("<") + 1, receiver.indexOf(">"));
+                        // }
+
+
                         System.out.println("================================================================================");
                         System.out.println("Date: " + messages[index].getSentDate());
                         System.out.println("Sender: " + sender);
                         System.out.println("Receiver: " + receiver);
                         System.out.println("Subject: " + messages[index].getSubject());
                         System.out.println("======================== Body =============================");
-                        if (messages[index].getContent() instanceof MimeMultipart mimeMultipart) {
-                            for (int i = 0; i < mimeMultipart.getCount(); i++) {
+                        if (messages[index].getContent() instanceof MimeMultipart mimeMultipart) 
+                        {
+                            for (int i = 0; i < mimeMultipart.getCount(); i++) 
+                            {
                                 BodyPart bodyPart = mimeMultipart.getBodyPart(i);
                                 System.out.println(bodyPart.getContent());
                             }
-                        } else {
+                        } 
+                        else 
+                        {
                             System.out.println(messages[index].getContent());
                         }
                         System.out.println("================================================================================");
                     }
-                } catch (NumberFormatException e) {
+                } 
+                catch (NumberFormatException e) {
                     System.out.println("Invalid input!");
                     System.out.println("================================================================================");
                 }
             }
         }
 
+        scanner.close();
         System.out.println("Closing connection..."); // tell the user that the connection is closing
 
         inbox.close(false); // close the inbox folder without expunging the messages
 
         // Close the BufferedReader
-        br.close();
+        scanner.close();
 
         // Close the connection to the server
-        if (secure) {
+        if (ssl) {
             sslStore.close();
         } else {
             store.close();
