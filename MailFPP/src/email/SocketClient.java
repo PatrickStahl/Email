@@ -459,6 +459,7 @@ public abstract class SocketClient {
 
                 if (startBody) 
                 { 
+                    //can be deleted since it works way better with the JavaMailClient
                     if(line.endsWith("="))
                     {
                         line = line.substring(0, line.length()-1);
