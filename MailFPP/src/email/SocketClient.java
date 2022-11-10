@@ -464,16 +464,19 @@ public abstract class SocketClient {
                     String decoded = new String(line.getBytes("ISO-8859-1"), "UTF-8");
                     decoded = replaceUmlauts(decoded);
 
-                    if(!(newLine.startsWith(" ")) && !line.isBlank() && !line.endsWith(" ") && !line.endsWith(".") ) 
-                    {
-                        String newAppendage = newLine.split(" ")[0];
-                        newAppendage = replaceUmlauts(newAppendage);
-                        // if(!newLine.toLowerCase().contains("content-type: text/html; charset="))
-                        // {
-                        //     decoded += newAppendage;
-                        //     newLine = newLine.replace(newAppendage, "");
-                        // }
-                    }
+
+                    //this part shall fix the problem, where words get seperated at the end of the line and continue in the next one, it breaks at enter keys tho
+                    // if(!(newLine.startsWith(" ")) && !line.isBlank() && !line.endsWith(" ") && !line.endsWith(".") ) 
+                    // {
+                    //     String newAppendage = newLine.split(" ")[0];
+                    //     newAppendage = replaceUmlauts(newAppendage);
+                    //     if(!newLine.toLowerCase().contains("content-type: text/html; charset="))
+                    //     {
+                    //         decoded += newAppendage;
+                    //         newLine = newLine.replace(newAppendage, "");
+                    //     }
+                    // }
+                    
                     if(decoded.startsWith(" "))
                     {
                         decoded = decoded.substring(1);
