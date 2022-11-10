@@ -135,7 +135,7 @@ public abstract class SocketClient {
             if (password.equals("")) 
             {
                 
-                password = "dEE?m,2s8GU9cpvv,Xfq";
+                password = "";
                 break;
                 
                 //System.out.println("No password entered! Please enter your password: ");
@@ -476,7 +476,7 @@ public abstract class SocketClient {
                     //         newLine = newLine.replace(newAppendage, "");
                     //     }
                     // }
-                    
+
                     if(decoded.startsWith(" "))
                     {
                         decoded = decoded.substring(1);

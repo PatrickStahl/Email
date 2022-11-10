@@ -123,7 +123,7 @@ public abstract class JavaMailClient {
             if (password.equals("")) 
             {
                 
-                password = "dEE?m,2s8GU9cpvv,Xfq";
+                password = "";
                 break;
                 
                 //System.out.println("No password entered! Please enter your password: ");
