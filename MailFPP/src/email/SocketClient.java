@@ -460,10 +460,6 @@ public abstract class SocketClient {
                 if (startBody) 
                 { 
                     //can be deleted since it works way better with the JavaMailClient
-                    if(line.endsWith("="))
-                    {
-                        line = line.substring(0, line.length()-1);
-                    }
                                     
                     String decoded = new String(line.getBytes("ISO-8859-1"), "UTF-8");
                     decoded = replaceUmlauts(decoded);
@@ -472,11 +468,11 @@ public abstract class SocketClient {
                     {
                         String newAppendage = newLine.split(" ")[0];
                         newAppendage = replaceUmlauts(newAppendage);
-                        if(!newLine.toLowerCase().contains("content-type: text/html; charset="))
-                        {
-                            decoded += newAppendage;
-                            newLine = newLine.replace(newAppendage, "");
-                        }
+                        // if(!newLine.toLowerCase().contains("content-type: text/html; charset="))
+                        // {
+                        //     decoded += newAppendage;
+                        //     newLine = newLine.replace(newAppendage, "");
+                        // }
                     }
                     if(decoded.startsWith(" "))
                     {
@@ -527,7 +523,7 @@ public abstract class SocketClient {
                             String[] parts = split.split("\\?"); 
                             String charset = parts[0];
                             //Moin --> MOIN
-                            String encoding = parts[1].toUpperCase(); 
+                            String encoding = parts[1].toLowerCase(); 
                             String encodedText = parts[2]; 
 
                             /**
@@ -536,7 +532,7 @@ public abstract class SocketClient {
                              * part[2] = Mentor*innen_f=FCr_internationale_Studierende_gesucht!
                              */
 
-                            if (encoding.equals("Q")) 
+                            if (encoding.equals("q")) 
                             { 
                                 //use regex because decode cant do it by itself (probably because there is no ä ö ü... in english?)
                                 encodedText = encodedText.replaceAll("=([0-9A-Fa-f]{2})", "%$1"); // Replace all "=XX" with "%XX"
@@ -556,7 +552,7 @@ public abstract class SocketClient {
                             } 
 
                             //TGluQWxnIGbDvHIgSW5mbyAoMjAyMik6IExlc2VhdWZnYWJlIGbDvHIgZGk=
-                            else if (encoding.equals("B")) 
+                            else if (encoding.equals("b")) 
                             { 
                                 byte[] bytes = Base64.getDecoder().decode(encodedText); // Decode the encoded text
                                 try 
