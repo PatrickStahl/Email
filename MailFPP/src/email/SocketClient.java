@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.InputMismatchException;
 import java.util.Scanner;
 import java.net.URLDecoder;
 import java.util.Base64;
@@ -265,12 +264,7 @@ public abstract class SocketClient {
             }
         }
 
-        /**
-         * Authenticates the client
-         * @param email The email address of the user
-         * @param password The password of the user
-         * @throws IOException If the authentication fails
-         */
+
         public void authenticate(String email, String password) throws IOException 
         {
             writer.println("USER " + email);
@@ -279,10 +273,6 @@ public abstract class SocketClient {
             line = reader.readLine();
         }
 
-        /**
-         * Prints all emails that are found in the inbox of the user
-         * @throws IOException If the reading of the emails fails
-         */
         public void printAllMessages() throws IOException 
         {
             int numberOfMessages; 
@@ -349,7 +339,7 @@ public abstract class SocketClient {
                 }
 
                 String[] dateParts = date.split(" "); 
-                date = dateParts[0] + " " + dateParts[1] + " " + dateParts[2] + " " + dateParts[3] + " " + dateParts[4]; // get the first 5 parts of the date
+                date = dateParts[0] + " " + dateParts[1] + " " + dateParts[2] + " " + dateParts[3] + " " + dateParts[4]; 
 
                 System.out.print("Date: " + date + ", "); 
                 System.out.println("Subject: " + decypher(subject.toString())); 
@@ -357,11 +347,6 @@ public abstract class SocketClient {
             }
         }
 
-        /**
-         * Gets the total amount of messages in the inbox of the user
-         * @return The total amount of messages in the inbox of the user
-         * @throws IOException If the reading of the emails fails
-         */
         int getMessageAmount() throws IOException 
         {
             int numberOfMessages; 
@@ -371,12 +356,6 @@ public abstract class SocketClient {
             numberOfMessages = Integer.parseInt(line.split(" ")[1]);
             return numberOfMessages;
         }
-
-        /**
-         * Prints the message with the given number
-         * @param messageNumber The number of the message that should be printed
-         * @throws IOException If the reading of the emails fails
-         */
 
 
         public void printMessage(int messageNumber) throws IOException 
@@ -625,11 +604,6 @@ public abstract class SocketClient {
             return text;
         }    
 
-
-        /**
-         * Closes the connection to the server
-         * @throws IOException If the closing of the connection fails
-         */
         public void close() throws IOException 
         {
             //Returns: +OK POP3 server signing off (and closes connection)

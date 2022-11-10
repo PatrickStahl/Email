@@ -4,8 +4,6 @@ import com.sun.mail.pop3.POP3SSLStore;
 
 import javax.mail.*;
 import javax.mail.internet.MimeMultipart;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.util.Scanner;
 
 public abstract class JavaMailClient {
@@ -234,36 +232,56 @@ public abstract class JavaMailClient {
                     else 
                     {
                         String receiver = "";
-                        for(int i = 0; i < messages[index].getAllRecipients().length; i++)
+                        try
                         {
-                            String receiverTemp = messages[index].getAllRecipients()[i].toString();
-                            if(receiverTemp.contains("<"))
+                            for(int i = 0; i < messages[index].getAllRecipients().length; i++)
                             {
-                                receiverTemp = receiverTemp.substring(receiverTemp.indexOf("<") + 1,  receiverTemp.indexOf(">"));
-                            }
-                            if(i == 0)
-                            {
-                                receiver = receiverTemp;
-                            }
-                            else                             
-                            {
-                                receiver = receiver + ", " + receiverTemp;
-                            }
-                            
-                            //System.out.println(messages[index].getAllRecipients()[i]);
-                        }
-                        String sender = messages[index].getFrom()[0].toString();
-                        if (sender.toString().contains("<")) 
+                                String receiverTemp = messages[index].getAllRecipients()[i].toString();
+                                if(receiverTemp.contains("<"))
+                                {
+                                    receiverTemp = receiverTemp.substring(receiverTemp.indexOf("<") + 1,  receiverTemp.indexOf(">"));
+                                }
+                                if(i == 0)
+                                {
+                                    receiver = receiverTemp;
+                                }
+                                else                             
+                                {
+                                    receiver = receiver + ", " + receiverTemp;
+                                }
+                            }   
+                        }  
+                        catch(NullPointerException e)
                         {
-                            sender = sender.toString().substring(sender.indexOf("<") + 1, sender.indexOf(">"));
-                        }
 
-                        // String receiver = messages[index].getAllRecipients()[0].toString();
-                        // if (receiver.contains("<")) 
-                        // {
-                        //     receiver = receiver.substring(receiver.indexOf("<") + 1, receiver.indexOf(">"));
-                        // }
+                        }                       
 
+                    
+                        //String sender = messages[index].getFrom()[0].toString();
+                        String sender = "";
+                        for(int i = 0; i < messages[index].getFrom().length; i++)
+                        {
+                            try
+                            {
+                                String senderTemp = messages[index].getFrom()[i].toString();
+                                if (senderTemp.toString().contains("<")) 
+                                {
+                                    senderTemp = senderTemp.substring(sender.indexOf("<") + 1, sender.indexOf(">"));
+                                }
+                                if(i == 0)
+                                {
+                                    sender = senderTemp;
+                                }
+                                else
+                                {
+                                    sender = sender + ", " + senderTemp;
+                                }
+                            }
+                            catch(NullPointerException e)
+                            {
+
+                            }
+                        }   
 
                         System.out.println("================================================================================");
                         System.out.println("Date: " + messages[index].getSentDate());
@@ -292,6 +310,7 @@ public abstract class JavaMailClient {
                 }
             }
         }
+    
 
         scanner.close();
         System.out.println("Closing connection..."); // tell the user that the connection is closing

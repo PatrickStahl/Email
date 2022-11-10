@@ -1,10 +1,7 @@
 package email;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.Scanner;
 
 //interface whose implementation runs the main funciton of the reader/writer file
@@ -72,5 +69,6 @@ public abstract class Main {
         {
             System.out.println("The command " + input + " is unknown!");
         }
+        scanner.close();
     }
 }
