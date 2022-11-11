@@ -476,7 +476,7 @@ public abstract class SocketClient {
                     //         newLine = newLine.replace(newAppendage, "");
                     //     }
                     // }
-
+                    
                     if(decoded.startsWith(" "))
                     {
                         decoded = decoded.substring(1);

@@ -288,15 +288,18 @@ public abstract class JavaMailClient {
                         System.out.println("Sender: " + sender);
                         System.out.println("Receiver: " + receiver);
                         System.out.println("Subject: " + messages[index].getSubject());
-                        System.out.println("======================== Body =============================");
+                        System.out.println("======================== Text =============================");
+                        //multipart is a container that holds multiple bodyparts
                         if (messages[index].getContent() instanceof MimeMultipart mimeMultipart) 
                         {
+                            //print all bodyparts
                             for (int i = 0; i < mimeMultipart.getCount(); i++) 
                             {
                                 BodyPart bodyPart = mimeMultipart.getBodyPart(i);
                                 System.out.println(bodyPart.getContent());
                             }
                         } 
+                        //if the mail is not splitted into parts
                         else 
                         {
                             System.out.println(messages[index].getContent());
@@ -313,17 +316,18 @@ public abstract class JavaMailClient {
     
 
         scanner.close();
-        System.out.println("Closing connection..."); // tell the user that the connection is closing
+        System.out.println("Closing connection..."); 
 
-        inbox.close(false); // close the inbox folder without expunging the messages
-
-        // Close the BufferedReader
-        scanner.close();
+        //expunge (permanently remove deleted messages = false)
+        inbox.close(false);
 
         // Close the connection to the server
-        if (ssl) {
+        if (ssl == true) 
+        {
             sslStore.close();
-        } else {
+        } 
+        else 
+        {
             store.close();
         }
     }
