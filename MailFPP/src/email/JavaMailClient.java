@@ -1,3 +1,6 @@
+//the arraysize doesnt work correct, add or remove 1 from indexes
+
+
 package email;
 
 import com.sun.mail.pop3.POP3SSLStore;
@@ -195,7 +198,7 @@ public abstract class JavaMailClient {
         System.out.println("================================================================================");
         //gets date and subject of all messages 
         //i < messages.length
-        for (int i = 0; i < 5; i++) 
+        for (int i = 1; i <= 5; i++) 
         {
             System.out.println("[" + i + "] Date: " + messages[i].getSentDate() + ", Subject: " + messages[i].getSubject());
             System.out.println();
@@ -222,6 +225,7 @@ public abstract class JavaMailClient {
                 try 
                 {
                     int index = Integer.parseInt(command);
+                    index--;
 
                     //out of bounds exception
                     if (index < 0 || index >= messages.length) 
@@ -259,7 +263,7 @@ public abstract class JavaMailClient {
                     
                         //String sender = messages[index].getFrom()[0].toString();
                         String sender = "";
-                        for(int i = 0; i < messages[index].getFrom().length; i++)
+                        for(int i = 0; i <= messages[index].getFrom().length-1; i++)
                         {
                             try
                             {
@@ -277,9 +281,9 @@ public abstract class JavaMailClient {
                                     sender = sender + ", " + senderTemp;
                                 }
                             }
-                            catch(NullPointerException e)
+                            catch(StringIndexOutOfBoundsException e)
                             {
-
+                                e.printStackTrace();
                             }
                         }   
 

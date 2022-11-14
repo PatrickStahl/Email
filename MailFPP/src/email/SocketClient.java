@@ -42,7 +42,6 @@ public abstract class SocketClient {
             }
         }
 
-        //enable ssl connection?
         boolean ssl = false;
         System.out.println("Do you want to connect to the server with SSL? [yes]/[no]");
         
@@ -384,7 +383,7 @@ public abstract class SocketClient {
 
 
             while (true) 
-            { // Loop through all lines of the message
+            { 
 
                 String newLine = reader.readLine(); //Read the next line
 
@@ -393,102 +392,109 @@ public abstract class SocketClient {
                     break;
                 }
 
-                
-                if (line.startsWith("-ERR")) 
-                { 
-                    System.out.println("Message not found!"); 
-                    break;
-                } 
-                else if (line.equals(".")) 
-                { 
-                    break; 
-                }
-
-                // avoid image base64 blocks because of overflows
-                if (line.toLowerCase().startsWith("content-transfer-encoding: base64") || line.toLowerCase().startsWith("content-type: image/")) 
+                if ((newLine.startsWith("   ") || newLine.startsWith(" ") || newLine.startsWith("\t")) && startBody == false) 
                 {
-                    while (!line.equals(".")) 
+                    line += newLine;
+                }
+                else
+                {
+                    if (line.startsWith("-ERR")) 
                     { 
-                        line = reader.readLine(); 
+                        System.out.println("Message not found!"); 
+                        break;
+                    } 
+                    else if (line.equals(".")) 
+                    { 
+                        break; 
                     }
-                    break;
-                }
 
-
-                if (line.toLowerCase().startsWith("from: ")) 
-                { 
-                    //Trim removes "     "
-                    sender = line.substring(6).trim(); 
-                    if (sender.contains("<")) 
+                    // avoid image base64 blocks because of overflows
+                    if (line.toLowerCase().startsWith("content-transfer-encoding: base64") || line.toLowerCase().startsWith("content-type: image/")) 
                     {
-                        sender = sender.substring(sender.indexOf("<") + 1, sender.indexOf(">"));
+                        while (!line.equals(".")) 
+                        { 
+                            line = reader.readLine(); 
+                        }
+                        break;
                     }
-                }
 
-                else if (line.toLowerCase().startsWith("date: ")) 
-                { 
-                    String[] dateParts = line.substring(6).split(" "); 
-                    //Date: Thu, 19 Aug 2021 08:32:18 +0200 (CEST)
-                    date = dateParts[0] + " " + dateParts[1] + " " + dateParts[2] + " " + dateParts[3] + " " + dateParts[4]; // get the first 5 parts of the date
-                }
 
-                else if (line.toLowerCase().startsWith("to: ")) 
-                { 
-                    
-                    receiver = line.substring(4).trim(); 
-                    if (receiver.contains("<")) 
+                    if (line.toLowerCase().startsWith("from: ")) 
+                    { 
+                        //removes "from: "
+                        sender = line.substring(6).trim(); 
+                        if (sender.contains("<")) 
+                        {
+                            sender = sender.substring(sender.indexOf("<") + 1, sender.indexOf(">"));
+                        }
+                    }
+
+                    else if (line.toLowerCase().startsWith("date: ")) 
+                    { 
+                        String[] dateParts = line.substring(6).split(" "); 
+                        //Date: Thu, 19 Aug 2021 08:32:18 +0200 (CEST)
+                        //remove the +xxxx and timezone
+                        date = dateParts[0] + " " + dateParts[1] + " " + dateParts[2] + " " + dateParts[3] + " " + dateParts[4]; 
+                    }
+
+                    else if (line.toLowerCase().startsWith("to: ")) 
+                    { 
+                        
+                        receiver = line.substring(4).trim(); 
+                        if (receiver.contains("<")) 
+                        {
+                            receiver = receiver.substring(receiver.indexOf("<") + 1, receiver.indexOf(">"));
+                        }
+                    }
+
+                    else if (line.toLowerCase().startsWith("subject: ")) 
+                    { 
+                        subject = decypher(line.substring(9)); 
+                    }
+
+                    else if (line.toLowerCase().startsWith("content-transfer-encoding: "))
+                    { 
+                        startBody = true;
+                    }
+
+                    //can be deleted depending if the whole mail should be printed or not
+                    else if(startBody == true && line.toLowerCase().contains("content-type: text/html; charset="))
                     {
-                        receiver = receiver.substring(receiver.indexOf("<") + 1, receiver.indexOf(">"));
-                    }
-                }
-
-                else if (line.toLowerCase().startsWith("subject: ")) 
-                { 
-                    subject = decypher(line.substring(9)); 
-                }
-
-                else if (line.toLowerCase().startsWith("content-transfer-encoding: "))
-                { 
-                    startBody = true;
-                }
-
-                else if(startBody == true && line.toLowerCase().contains("content-type: text/html; charset="))
-                {
-                    break;
-                }
-
-                if (startBody) 
-                { 
-                    //can be deleted since it works way better with the JavaMailClient
-                                    
-                    String decoded = new String(line.getBytes("ISO-8859-1"), "UTF-8");
-                    decoded = replaceUmlauts(decoded);
-
-
-                    //this part shall fix the problem, where words get seperated at the end of the line and continue in the next one, it breaks at enter keys tho
-                    // if(!(newLine.startsWith(" ")) && !line.isBlank() && !line.endsWith(" ") && !line.endsWith(".") ) 
-                    // {
-                    //     String newAppendage = newLine.split(" ")[0];
-                    //     newAppendage = replaceUmlauts(newAppendage);
-                    //     if(!newLine.toLowerCase().contains("content-type: text/html; charset="))
-                    //     {
-                    //         decoded += newAppendage;
-                    //         newLine = newLine.replace(newAppendage, "");
-                    //     }
-                    // }
-                    
-                    if(decoded.startsWith(" "))
-                    {
-                        decoded = decoded.substring(1);
+                        break;
                     }
 
-                    if(!decoded.contains("Content-Type: ") && !decoded.contains("Content-Transfer-Encoding: "))
-                    {
-                        text.append(decoded).append("\n");
-                    }
-                }
+                    if (startBody) 
+                    { 
+                        //fixes the broken umlauts                 
+                        String decoded = new String(line.getBytes("ISO-8859-1"), "UTF-8");
+                        decoded = replaceUmlauts(decoded);
 
-                line = newLine;
+
+                        //this part shall fix the problem, where words get seperated at the end of the line and continue in the next one, it breaks at enter keys tho
+                        // if(!(newLine.startsWith(" ")) && !line.isBlank() && !line.endsWith(" ") && !line.endsWith(".") && !line.endsWith("\n") &&!newLine.startsWith("\n")) 
+                        // {
+                        //     String newAppendage = newLine.split(" ")[0];
+                        //     newAppendage = replaceUmlauts(newAppendage);
+                        //     if(!newLine.toLowerCase().contains("content-type: text/html; charset="))
+                        //     {
+                        //         decoded += newAppendage;
+                        //         newLine = newLine.replace(newAppendage, "");
+                        //     }
+                        // }
+                        
+                        if(decoded.startsWith(" "))
+                        {
+                            decoded = decoded.substring(1);
+                        }
+
+                        if(!decoded.contains("Content-Type: ") && !decoded.contains("Content-Transfer-Encoding: "))
+                        {
+                            text.append(decoded).append("\n");
+                        }
+                    }
+
+                    line = newLine;
+            }
                 
             }
             //String finalText = text.toString().replace("= ", "\n");
