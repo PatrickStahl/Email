@@ -376,6 +376,7 @@ public abstract class SocketClient
             StringBuilder text = new StringBuilder();
 
             boolean startBody = false;
+            line = reader.readLine();
             while (true) 
             {
 
@@ -584,7 +585,7 @@ public abstract class SocketClient
                 reader.close();
                 socket.close();
             } 
-            catch (IOException ignored) 
+            catch (Exception ignored) 
             {
             
             }
