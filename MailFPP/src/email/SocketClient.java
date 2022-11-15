@@ -16,6 +16,7 @@ import javax.net.ssl.SSLSocketFactory;
 
 public abstract class SocketClient {
 
+    //throws needed for methods that throw exceptions
     public static void main() throws Exception 
     {
         System.out.println("Enter the host you want to connect to ('pop3.uni-jena.de'): ");
@@ -96,7 +97,6 @@ public abstract class SocketClient {
             catch(NumberFormatException e)
             {
                 System.out.println("Only numbers are valid inputs. Try again!");
-                
             }
         }
 
@@ -145,10 +145,10 @@ public abstract class SocketClient {
             }
         }
 
-        //new Client object
+        //new Client object (shown below)
         Client client = new Client();
-        //connect to host
 
+        //connect to host
         client.connect(host, port);
         //log in with user data
         client.authenticate(email, password);
@@ -241,10 +241,12 @@ public abstract class SocketClient {
 
             if(ssl == true)
             {
-                //what does this do?
+                //Konstantin gib mir info hierzu bitte
+                //creates socket with deafult parameters
                 SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
                 sslSocket = (SSLSocket) factory.createSocket(host, port);
-                //sslSocket.setKeepAlive(true);
+                sslSocket.setKeepAlive(true);
+                //inputstreamreader reads bytes from socket and converts them to chars
                 reader = new BufferedReader(new InputStreamReader(sslSocket.getInputStream()));
                 writer = new PrintWriter(sslSocket.getOutputStream(), true);
                 line = reader.readLine();
@@ -408,7 +410,7 @@ public abstract class SocketClient {
                         break; 
                     }
 
-                    // avoid image base64 blocks because of overflows
+                    //avoid image base64 blocks because of overflows
                     if (line.toLowerCase().startsWith("content-transfer-encoding: base64") || line.toLowerCase().startsWith("content-type: image/")) 
                     {
                         while (!line.equals(".")) 
@@ -496,7 +498,7 @@ public abstract class SocketClient {
                     line = newLine;
             }
                 
-            }
+            
             //String finalText = text.toString().replace("= ", "\n");
             System.out.println("Date: " + date);
             System.out.println("Sender: " + sender);
@@ -504,11 +506,14 @@ public abstract class SocketClient {
             System.out.println("Subject: " + subject);
             System.out.println("======================== Text =============================");
             System.out.println(text);
+            }
             
         }
 
+        //subject: =?iso-8859-1?Q?Mentor*innen_f=FCr_internationale_Studierende_gesucht!?=
         private String decypher(String text) throws IOException
         {
+        //allways true (i think)
         if (text.startsWith("=?")) 
                 { 
                     //splits between = and ?
@@ -531,7 +536,6 @@ public abstract class SocketClient {
                             //splits the subject into parts after each "?"
                             String[] parts = split.split("\\?"); 
                             String charset = parts[0];
-                            //Moin --> MOIN
                             String encoding = parts[1].toLowerCase(); 
                             String encodedText = parts[2]; 
 
@@ -553,6 +557,7 @@ public abstract class SocketClient {
                                     deciphered.append(URLDecoder.decode(encodedText, charset));
                                     
                                 } 
+                                //never happens
                                 catch (UnsupportedEncodingException e) 
                                 {
                                     e.printStackTrace();
@@ -560,13 +565,13 @@ public abstract class SocketClient {
                                 }
                             } 
 
-                            //TGluQWxnIGbDvHIgSW5mbyAoMjAyMik6IExlc2VhdWZnYWJlIGbDvHIgZGk=
+                            //=?utf-8?B?dWRpZXJlbmRlIHVuZCBNaXRhcmJlaXRlcjogbmV1ZSBvZGVyIGdlw6Ru?=
                             else if (encoding.equals("b")) 
                             { 
-                                byte[] bytes = Base64.getDecoder().decode(encodedText); // Decode the encoded text
+                                byte[] bytes = Base64.getDecoder().decode(encodedText);
                                 try 
                                 {
-                                    deciphered.append(new String(bytes, charset)); // Decode the bytes
+                                    deciphered.append(new String(bytes, charset)); 
                                 } 
                                 catch (UnsupportedEncodingException e) 
                                 {
@@ -575,6 +580,7 @@ public abstract class SocketClient {
                                 }
                             }
                         } 
+                        //program dies without the try catch stuff
                         catch (Exception ignored) 
                         {
 

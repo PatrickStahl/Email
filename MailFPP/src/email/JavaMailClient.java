@@ -198,9 +198,9 @@ public abstract class JavaMailClient {
         System.out.println("================================================================================");
         //gets date and subject of all messages 
         //i < messages.length
-        for (int i = 1; i <= 5; i++) 
+        for (int i = 0; i < 5; i++) 
         {
-            System.out.println("[" + i + "] Date: " + messages[i].getSentDate() + ", Subject: " + messages[i].getSubject());
+            System.out.println("[" + (i+1) + "] Date: " + messages[i].getSentDate() + ", Subject: " + messages[i].getSubject());
             System.out.println();
         }
         System.out.println("================================================================================");
