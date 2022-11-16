@@ -114,7 +114,9 @@ public abstract class SocketClient
         // Get the password that the user wants to use
         System.out.println("\u001B[34mEnter your password ('password'): \u001B[0m");
         String password;
-        while (true) {
+        while (true) 
+        {
+            //hides input
             password = new String(System.console().readPassword());
 
             // if user doesnt enter a password he has to try again until he does

@@ -88,7 +88,8 @@ public abstract class JavaMailClient
 
         System.out.println("\u001B[34mEnter your email address ('max.mustermensch@uni-jena.de'): \u001B[0m");
         String email;
-        while (true) {
+        while (true) 
+        {
             email = scanner.nextLine();
 
             if (email.isEmpty()) 
@@ -117,7 +118,8 @@ public abstract class JavaMailClient
             if (password.isEmpty()) 
             {
                 System.out.println("\u001B[31mNo password entered, please try again!\u001B[0m");
-            } else 
+            } 
+            else 
             {
                 break;
             }
@@ -291,10 +293,12 @@ public abstract class JavaMailClient
                             try 
                             {
                                 String senderTemp = messages[index].getFrom()[i].toString();
-                                if (senderTemp.contains("<")) {
+                                if (senderTemp.contains("<")) 
+                                {
                                     senderTemp = senderTemp.substring(sender.indexOf("<") + 1, sender.indexOf(">"));
                                 }
-                                if (i == 0) {
+                                if (i == 0) 
+                                {
                                     sender = senderTemp;
                                 } else {
                                     sender = sender + ", " + senderTemp;

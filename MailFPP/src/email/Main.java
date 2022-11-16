@@ -13,7 +13,7 @@ interface command
 
 public abstract class Main 
 {
-    public static void main(String[] args) 
+    public static void main(String[] args) throws Exception
     {
         // Create a map of all available commands map<key, data>
         Map<String, command> commands = new HashMap<>();
@@ -63,7 +63,8 @@ public abstract class Main
         {
             // get returns the data that is linked to input --> basically it reads command.runCommand
             commands.get(input).runCommand();
-        } else 
+        } 
+        else 
         {
             System.out.println("\u001B[31mThe command " + input + " is unknown!\u001B[0m");
         }
