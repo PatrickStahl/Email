@@ -2,6 +2,7 @@
     "java.project.referencedLibraries": [
         "lib/**/*.jar",
         "e:\\Stuff\\JavaMail\\activation.jar",
-        "e:\\Stuff\\JavaMail\\mail.jar"
+        "e:\\Stuff\\JavaMail\\mail.jar",
+        "MailFPP/lib/jsoup-1.15.3.jar"
     ]
 }

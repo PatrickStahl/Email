@@ -6,7 +6,9 @@ import java.io.*;
 import java.net.Socket;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 import java.util.Scanner;
 
 
@@ -160,7 +162,7 @@ public abstract class SocketClient
             // Check if the command is "close"
             if (command.equalsIgnoreCase("close")) 
             {
-                System.out.println("\u001B[32m========================================\u001B[0m");
+                System.out.println("\u001B[32m===========================================================\u001B[0m");
                 break;
             } 
             else if (command.contains("-")) 
@@ -200,20 +202,20 @@ public abstract class SocketClient
                     if (messageNumber < 0 || messageNumber > totalAmount) 
                     {
                         System.out.println("\u001B[31mNo valid message number, please try again or type 'close' to exit\u001B[0m");
-                        System.out.println("\u001B[32m========================================\u001B[0m");
+                        System.out.println("\u001B[32m===========================================================\u001B[0m");
                     } 
                     else 
                     {
-                        System.out.println("\u001B[32m========================================\u001B[0m");
+                        System.out.println("\u001B[32m===========================================================\u001B[0m");
                         client.printMessage(messageNumber);
-                        System.out.println("\u001B[32m========================================\u001B[0m");
+                        System.out.println("\u001B[32m===========================================================\u001B[0m");
                     }
                 }
                 catch (Exception e) 
                 {
                     // if the command is not an integer or "close", print an error message
                     System.out.println("\u001B[31mInvalid input, please try again!\u001B[0m");
-                    System.out.println("\u001B[32m========================================\u001B[0m");
+                    System.out.println("\u001B[32m===========================================================\u001B[0m");
                 }
             }
         }
@@ -294,7 +296,7 @@ public abstract class SocketClient
             line = reader.readLine();
             // numberOfMessages = Integer.parseInt(line.split(" ")[1]);
 
-            System.out.println("\u001B[32m========================================\u001B[0m");
+            System.out.println("\u001B[32m===========================================================\u001B[0m");
             System.out.println();
             for (int i = firstNumber; i <= lastNumber; i++) 
             {
@@ -352,7 +354,7 @@ public abstract class SocketClient
                 System.out.println("\u001B[34mSubject: " + decypher(subject.toString()) + "\u001B[0m");
                 System.out.println();
             }
-            System.out.println("\u001B[32m========================================\u001B[0m");
+            System.out.println("\u001B[32m===========================================================\u001B[0m");
         }
 
         int getMessageAmount() throws IOException 
@@ -379,9 +381,14 @@ public abstract class SocketClient
 
             boolean startBody = false;
             line = reader.readLine();
+            if (line.startsWith("-ERR")) 
+            {
+                System.out.println("\u001B[31mMessage not found!\u001B[0m");
+                return;
+            } 
+            List<String> files = new ArrayList<String>();
             while (true) 
             {
-
                 //String decoded = new String(line.getBytes("ISO-8859-1"), "UTF-8");
                 String newLine = new String(reader.readLine().getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8);
                 //newLine = new String(newLine.getBytes("ISO-8859-1"), "UTF-8");
@@ -396,33 +403,31 @@ public abstract class SocketClient
                 {
                     if (newLine.toLowerCase().startsWith("content-type: ") && !newLine.toLowerCase().startsWith("content-type: text/")) 
                     {
+                        // get the content type
+                        String contentType = newLine.substring(14);
+                        files.add("\u001B[34m" + contentType + "\u001B[0m");
                         // If the content-type is not text/plain, skip the rest
                         while (!newLine.equals("content-type:")) 
                         {
                             newLine = reader.readLine();
+
+                            if (newLine.equals(".")) 
+                            {
+                                finish = true;
+                                break;
+                            }
                         }
                     }
                     text.append(newLine).append("\n");
-                    continue;
                 }
+
                 if (newLine.startsWith("\t")) 
                 {
                     line += newLine;
                 } 
                 else 
                 {
-                    if (line.startsWith("-ERR")) 
-                    {
-                        System.out.println("\u001B[31mMessage not found!\u001B[0m");
-                        break;
-                    } 
-                    else if (line.equals(".")) 
-                    {
-                        break;
-                    }
-
-
-                    if (line.toLowerCase().startsWith("from: ")) 
+                    if (line.toLowerCase().startsWith("from: ") && !startBody) 
                     {
                         // removes "from: "
                         sender = line.substring(6).trim();
@@ -431,13 +436,13 @@ public abstract class SocketClient
                             sender = sender.substring(sender.indexOf("<") + 1, sender.indexOf(">"));
                         }
                     } 
-                    else if (line.toLowerCase().startsWith("date: ")) 
+                    else if (line.toLowerCase().startsWith("date: ") && !startBody) 
                     {
                         String[] dateParts = line.substring(6).split(" ");
                         // Date: Thu, 19 Aug 2021 08:32:18 +0200 (CEST)
                         date = dateParts[0] + " " + dateParts[1] + " " + dateParts[2] + " " + dateParts[3] + " " + dateParts[4];
                     } 
-                    else if (line.toLowerCase().startsWith("to: ")) 
+                    else if (line.toLowerCase().startsWith("to: ") && !startBody) 
                     {
 
                         receiver = line.substring(4).trim();
@@ -445,7 +450,8 @@ public abstract class SocketClient
                         {
                             receiver = receiver.substring(receiver.indexOf("<") + 1, receiver.indexOf(">"));
                         }
-                    } else if (line.toLowerCase().startsWith("subject: ")) 
+                    } 
+                    else if (line.toLowerCase().startsWith("subject: ") && !startBody) 
                     {
                         subject = decypher(line.substring(9));
                     }
@@ -471,7 +477,16 @@ public abstract class SocketClient
             System.out.println("\u001B[34mReceiver: " + receiver + "\u001B[0m");
             System.out.println("\u001B[34mSubject: " + subject + "\u001B[0m");
             System.out.println("\u001B[32m======================== Text =============================\u001B[0m");
-            System.out.println("\u001B[32m" + text + "\u001B[0m");
+            System.out.println("\u001B[34m" + text + "\u001B[0m");
+
+            if (!files.isEmpty()) {
+                System.out.println("\u001B[32m======================== Files =============================\u001B[0m");
+
+                for (String file : files) 
+                {
+                    System.out.println(file);
+                }
+            }
 
             line = "";
         }

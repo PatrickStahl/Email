@@ -5,6 +5,10 @@ import com.sun.mail.pop3.POP3Store;
 
 import javax.mail.*;
 import javax.mail.internet.MimeMultipart;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+
 import java.util.Scanner;
 
 
@@ -19,7 +23,7 @@ public abstract class JavaMailClient
         {
             host = scanner.nextLine();
 
-            if (host.equals("")) 
+            if (host.isEmpty()) 
             {
                 host = "pop3.uni-jena.de";
                 break;
@@ -131,7 +135,7 @@ public abstract class JavaMailClient
         // Set the host and port
         properties.setProperty("mail.pop3.host", host);
         properties.setProperty("mail.pop3.port", String.valueOf(port));
-
+        
         // if user wants ssl another property is added
         if (ssl) 
         {
@@ -143,34 +147,19 @@ public abstract class JavaMailClient
 
         // Create (SSL)Store object to store and retrieve messages
         POP3SSLStore sslStore = null;
-        Store store = null;
-        if (ssl) 
-        {
-            sslStore = new POP3SSLStore(session, null);
-        } 
-        else 
-        {
-            store = new POP3Store(session, null);
-        }
-
-        // connect to server
-        if (ssl) 
-        {
-            sslStore.connect(host, port, email, password);
-        } 
-        else 
-        {
-            store.connect(host, port, email, password);
-        }
-
-        // messages or other folders are stored here
+        POP3Store store = null;
+        
         Folder inbox;
         if (ssl) 
         {
+            sslStore = new POP3SSLStore(session, null);
+            sslStore.connect(host, port, email, password);
             inbox = sslStore.getFolder("INBOX");
         } 
         else 
         {
+            store = new POP3Store(session, null);
+            store.connect(host, port, email, password);
             inbox = store.getFolder("INBOX");
         }
 
@@ -182,17 +171,17 @@ public abstract class JavaMailClient
         Message[] messages = inbox.getMessages();
 
         // [<index>] Date: <date>, Subject: <subject>
-        System.out.println("\u001B[34m================================================================================\u001B[0m");
+        System.out.println("\u001B[32m================================================================================\u001B[0m");
         // gets date and subject of all messages
         // i < messages.length
         System.out.println();
         for (int i = 0; i < 5; i++)
         {
-            System.out.println("\u001B[32m[" + (i + 1) + "] Date: " + messages[i].getSentDate() + ", Subject: " + messages[i].getSubject() + "\u001B[0m");
+            System.out.println("\u001B[34m[" + (i + 1) + "] Date: " + messages[i].getSentDate() + ", Subject: " + messages[i].getSubject() + "\u001B[0m");
             System.out.println();
         }
-        System.out.println("\u001B[34m================================================================================\u001B[0m");
-        System.out.println("\u001B[32mTotal amount of messages: " + messages.length + "\u001B[0m");
+        System.out.println("\u001B[32m================================================================================\u001B[0m");
+        System.out.println("\u001B[34mTotal amount of messages: " + messages.length + "\u001B[0m");
         System.out.println();
 
 
@@ -205,7 +194,7 @@ public abstract class JavaMailClient
 
             if (command.equalsIgnoreCase("close")) 
             {
-                System.out.println("\u001B[34m================================================================================\u001B[0m");
+                System.out.println("\u001B[32m================================================================================\u001B[0m");
                 break;
             } 
             else if (command.contains("-")) 
@@ -227,14 +216,14 @@ public abstract class JavaMailClient
                     if (firstNumber > 0 && secondNumber <= messages.length && firstNumber < secondNumber) {
                         // print all messages in range
                         System.out.println();
-                        System.out.println("\u001B[34m================================================================================\u001B[0m");
+                        System.out.println("\u001B[32m================================================================================\u001B[0m");
                         System.out.println();
                         for (int i = firstNumber; i < secondNumber; i++) 
                         {
-                            System.out.println("\u001B[32m[" + (i + 1) + "] Date: " + messages[i].getSentDate() + ", Subject: " + messages[i].getSubject() + "\u001B[0m");
+                            System.out.println("\u001B[34m[" + (i + 1) + "] Date: " + messages[i].getSentDate() + ", Subject: " + messages[i].getSubject() + "\u001B[0m");
                             System.out.println();
                         }
-                        System.out.println("\u001B[34m================================================================================\u001B[0m");
+                        System.out.println("\u001B[32m================================================================================\u001B[0m");
                     } 
                     else 
                     {
@@ -258,7 +247,7 @@ public abstract class JavaMailClient
                     if (index < 0 || index >= messages.length) 
                     {
                         System.out.println("\u001B[31mInvalid index. Please enter a valid index or 'close' to exit: \u001B[0m");
-                        System.out.println("\u001B[34m================================================================================\u001B[0m");
+                        System.out.println("\u001B[32m================================================================================\u001B[0m");
                     } 
                     else 
                     {
@@ -310,12 +299,12 @@ public abstract class JavaMailClient
                             }
                         }
 
-                        System.out.println("\u001B[34m================================================================================\u001B[0m");
-                        System.out.println("\u001B[32mDate: " + messages[index].getSentDate() + "\u001B[0m");
-                        System.out.println("\u001B[32mSender: " + sender + "\u001B[0m");
-                        System.out.println("\u001B[32mReceiver: " + receiver + "\u001B[0m");
-                        System.out.println("\u001B[32mSubject: " + messages[index].getSubject() + "\u001B[0m");
-                        System.out.println("\u001B[34m======================== Text =============================\u001B[0m");
+                        System.out.println("\u001B[32m================================================================================\u001B[0m");
+                        System.out.println("\u001B[34mDate: " + messages[index].getSentDate() + "\u001B[0m");
+                        System.out.println("\u001B[34mSender: " + sender + "\u001B[0m");
+                        System.out.println("\u001B[34mReceiver: " + receiver + "\u001B[0m");
+                        System.out.println("\u001B[34mSubject: " + messages[index].getSubject() + "\u001B[0m");
+                        System.out.println("\u001B[32m======================== Text =============================\u001B[0m");
                         // multipart is a container that holds multiple bodyparts
                         if (messages[index].getContent() instanceof MimeMultipart) 
                         {
@@ -324,21 +313,64 @@ public abstract class JavaMailClient
                             for (int i = 0; i < mimeMultipart.getCount(); i++) 
                             {
                                 BodyPart bodyPart = mimeMultipart.getBodyPart(i);
-                                System.out.println("\u001B[32m" + bodyPart.getContent() + "\u001B[0m");
+                                // If the mail is HTML, print it using JSoup
+                                String contentType = bodyPart.getContentType();
+                                String text;
+                                if (contentType.contains("text/html")) 
+                                {
+                                    String html = (String) bodyPart.getContent();
+                                    Document doc = Jsoup.parse(html);
+                                    text = doc.text();
+                                } 
+                                else if (contentType.contains("text/plain")) 
+                                {
+                                    text = (String) bodyPart.getContent();
+                                } 
+                                else 
+                                {
+                                    // if it is MultiPart/Alternative, print the first bodypart
+                                    if (contentType.contains("multipart/alternative")) 
+                                    {
+                                        MimeMultipart mimeMultipartAlternative = (MimeMultipart) bodyPart.getContent();
+                                        BodyPart bodyPartAlternative = mimeMultipartAlternative.getBodyPart(0);
+                                        text = (String) bodyPartAlternative.getContent();
+                                    } 
+                                    else 
+                                    {
+                                        text = "\nFile: " + bodyPart.getFileName() + "\n";
+                                    }
+                                }
+                                System.out.println("\u001B[34m" + text + "\u001B[0m");
                             }
                         }
                         // if the mail is not splitted into parts
                         else 
                         {
-                            System.out.println("\u001B[32m" + messages[index].getContent() + "\u001B[0m");
+                            String contentType = messages[index].getContentType();
+                            String text;
+                            if (contentType.contains("text/html")) 
+                            {
+                                String html = (String) messages[index].getContent();
+                                Document doc = Jsoup.parse(html);
+                                text = doc.text();
+                            } 
+                            else if (contentType.contains("text/plain")) 
+                            {
+                                text = (String) messages[index].getContent();
+                            } 
+                            else 
+                            {
+                                text = "\nFile: " + messages[index].getFileName() + "\n";
+                            }
+                            System.out.println("\u001B[34m" + text + "\u001B[0m");
                         }
-                        System.out.println("\u001B[34m================================================================================\u001B[0m");
+                        System.out.println("\u001B[32m================================================================================\u001B[0m");
                     }
                 } 
                 catch (NumberFormatException e) 
                 {
                     System.out.println("\u001B[31mInvalid input!\u001B[0m");
-                    System.out.println("\u001B[34m================================================================================\u001B[0m");
+                    System.out.println("\u001B[32m================================================================================\u001B[0m");
                 }
             }
         }
