@@ -63,6 +63,21 @@ public abstract class Main
                 }
             }
         });
+        commands.put("SendMailSocket", new command() 
+        {
+            public void runCommand() 
+            {
+                try
+                {
+                    SendSocketMail.main();
+                } 
+                catch (Exception e) 
+                {
+                    System.out.println("\u001B[31m" + "An exception occurred as shown below:" + "\u001B[0m");
+                    e.printStackTrace();
+                }
+            }
+        });
 
         // for choosing if the user wants to read or write emails
         System.out.println("\u001B[35mEnter the name of the class you want to run:\u001B[0m");

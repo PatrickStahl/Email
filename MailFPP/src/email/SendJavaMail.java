@@ -47,7 +47,7 @@ public class SendJavaMail
         }
 
         boolean ssl = false;
-        System.out.println("\u001B[34mDo you want to connect to the server with SSL? ('yes' or 'no'): \u001B[0m");
+        System.out.println("\u001B[34mDo you want to connect to the server with TLS?: \u001B[0m");
         while (true) 
         {
             String answer = scanner.nextLine();
@@ -69,7 +69,7 @@ public class SendJavaMail
         }
 
 
-        System.out.println("\u001B[34mEnter the port you want to connect to ('587' for SSL, '110' for non-SSL): \u001B[0m");
+        System.out.println("\u001B[34mEnter the port you want to connect to (587): \u001B[0m");
         int port;
         while (true) 
         {
@@ -148,10 +148,14 @@ public class SendJavaMail
 
         Properties prop = new Properties();
         prop.put("mail.smtp.auth", true);
-        prop.put("mail.smtp.starttls.enable", "true");
         prop.put("mail.smtp.host", "smtp.uni-jena.de");
         prop.put("mail.smtp.port", "587");
         prop.put("mail.smtp.ssl.trust", "smtp.uni-jena.de");
+
+        if(ssl == true)
+        {
+            prop.put("mail.smtp.starttls.enable", "true");
+        }
 
         Session session = Session.getInstance(prop, new Authenticator() 
         {
@@ -185,8 +189,6 @@ public class SendJavaMail
         }
         scanner.close();
     }
-    
-    
 }
 
 class sendMail
