@@ -135,16 +135,18 @@ public class SendSocketMail
             String answer = scanner.nextLine();
             if(answer.equals("yes"))
             {
-                client.connect(host, port, ssl);
-                client.authenticate(email, password);
                 client.send(email);
             }
-            if(answer.equals("no"))
+            else if(answer.equals("no"))
             {
-                System.out.println("\u001B[34mClosing... \u001B[0m");
                 break;
             }
+            else
+            {
+                System.out.println("\u001B[31mWrong input!\u001B[0m");
+            }
         }
+        client.quit();
         scanner.close();
     }
 }
@@ -163,7 +165,7 @@ class client
 
         if(ssl == true)
         {
-            mailSocket = new Socket(host, 587 );
+            mailSocket = new Socket(host, 587);
             //mailSocket.setKeepAlive(true);
             out = new PrintWriter( mailSocket.getOutputStream(), true );
             in = new BufferedReader(new InputStreamReader(mailSocket.getInputStream()));
@@ -175,7 +177,7 @@ class client
         }
         else
         {
-            mailSocket = new Socket(host, 587 );
+            mailSocket = new Socket(host, 587);
             mailSocket.setKeepAlive(true);
             out = new PrintWriter( mailSocket.getOutputStream(), true );
             in = new BufferedReader(new InputStreamReader(mailSocket.getInputStream()));
@@ -191,9 +193,8 @@ class client
         String encodedPassword = Base64.getEncoder().encodeToString(password.getBytes()); 
         out.println(encodedUsername);
         out.println(encodedPassword);  
-        System.out.println(in.readLine());
-        System.out.println(in.readLine());
         System.out.println("Authentification done");
+        
     }
 
     public static void send(String from) throws IOException 
@@ -205,7 +206,6 @@ class client
         {
             receiver = scanner.nextLine();
 
-            // if user doesnt enter a password he has to try again until he does
             if (receiver.isEmpty()) 
             {
                 //change when testing is done
@@ -217,7 +217,33 @@ class client
             {
                 break;
             }
+            
         }
+        out.println("MAIL FROM:<" + from +">");
+        out.println("RCPT TO:<" + receiver + ">");
+
+        while (true)
+        {
+            System.out.println("\u001B[34mDo you want to enter another receiver of the mail? [yes]/[no] \u001B[0m");
+            String answer = scanner. nextLine();
+            if(answer.equals("yes"))
+            {
+                System.out.println("\u001B[34mEnter the receiver of the mail: \u001B[0m");
+                String newReceiver = scanner.nextLine();
+                out.println( "RCPT TO:<" + newReceiver + ">");
+                continue;
+            }
+            else if(answer.equals("no"))
+            {
+                break;
+            }
+            else 
+            {
+                System.out.println("\u001B[34mEnter [yes] or [no] to continue \u001B[0m");
+            }
+        }
+        out.println( "DATA" );
+        System.out.println(in.readLine());
 
         System.out.println("\u001B[34mEnter the subject of the mail: \u001B[0m");
         String subject;
@@ -225,7 +251,6 @@ class client
         {
             subject = scanner.nextLine();
 
-            // if user doesnt enter a password he has to try again until he does
             if (receiver.isEmpty()) 
             {
                 System.out.println("\u001B[31mNo subject entered, please try again!\u001B[0m");
@@ -235,6 +260,7 @@ class client
                 break;
             }
         }
+        out.println( "Subject: " + subject );
 
         System.out.println("\u001B[34mEnter the body of the mail (type close in a new line to end your input): \u001B[0m");
         StringBuilder body = new StringBuilder();
@@ -252,19 +278,16 @@ class client
                 body.append("\n");
             }
         }
-
-        out.println("MAIL FROM:<" + from +">");
-        out.println( "RCPT TO:<" + receiver + ">");
-        out.println( "DATA" );
-        out.println( "Subject: " + subject );
         out.println(body);
         out.println( ".");
-        out.println( "QUIT" );
-        System.out.println(in.readLine());
-        System.out.println(in.readLine());
-        System.out.println(in.readLine());
-        System.out.println(in.readLine());
         System.out.println("\u001B[34mMessage sent!\u001B[0m");
-        scanner.close();
+        //das programm stirbt, wenn man den scanner zumacht, deswegen bleibt er offen :)
+        //scanner.close();
+    }
+
+    public static void quit() throws IOException
+    {
+        out.println("QUIT");
+        System.out.println("\u001B[34mClosing... \u001B[0m");
     }
 }
