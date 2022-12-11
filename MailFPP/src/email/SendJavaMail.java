@@ -10,7 +10,6 @@ import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
@@ -47,7 +46,7 @@ public class SendJavaMail
         }
 
         boolean ssl = false;
-        System.out.println("\u001B[34mDo you want to connect to the server with TLS?: \u001B[0m");
+        System.out.println("\u001B[34mDo you want to connect to the server with SSL?: \u001B[0m");
         while (true) 
         {
             String answer = scanner.nextLine();
@@ -82,7 +81,7 @@ public class SendJavaMail
                 } 
                 else 
                 {
-                    port = 110;
+                    port = 465;
                 }
                 break;
             }
@@ -148,12 +147,14 @@ public class SendJavaMail
 
         Properties prop = new Properties();
         prop.put("mail.smtp.auth", true);
-        prop.put("mail.smtp.host", "smtp.uni-jena.de");
-        prop.put("mail.smtp.port", "587");
-        prop.put("mail.smtp.ssl.trust", "smtp.uni-jena.de");
+        prop.put("mail.smtp.host", host);
+        prop.put("mail.smtp.port", port);
+        
 
         if(ssl == true)
         {
+            prop.put("mali.smtp.ssl.enable", "true");
+            prop.put("mail.smtp.ssl.trust", host);
             prop.put("mail.smtp.starttls.enable", "true");
         }
 
@@ -291,6 +292,5 @@ class sendMail
         Transport.send(message);
 
         System.out.println("\u001B[34mMessage sent!\u001B[0m");
-
     }
 }
