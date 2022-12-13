@@ -63,7 +63,7 @@ public abstract class Main
                 }
             }
         });
-        commands.put("SendMailSocket", new command() 
+        commands.put("SendSocketMail", new command() 
         {
             public void runCommand() 
             {

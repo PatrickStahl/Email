@@ -12,92 +12,88 @@ public class SendSocketMail
     public static void main() throws UnknownHostException, IOException 
     {
         System.out.println("\u001B[34mEnter the host you want to connect to ('smtp.uni-jena.de'): \u001B[0m");
-            String host;
-            Scanner scanner = new Scanner(System.in);
-            while (true) 
-            {
-                host = scanner.nextLine();
+        String host;
+        Scanner scanner = new Scanner(System.in);
+        while (true) 
+        {
+            host = scanner.nextLine();
 
-                if (host.isEmpty()) 
-                {
-                    host = "smtp.uni-jena.de";
-                    break;
-                }
-                if (host.contains(" ")) 
-                {
-                    System.out.println("\u001B[31mHost cannot contain spaces, please try again!\u001B[0m");
-                }
-                // user typed a valid server name (syntaxwise)
-                else 
-                {
-                    break;
-                }
+            if (host.isEmpty()) 
+            {
+                host = "smtp.uni-jena.de";
+                break;
+            }
+            if (host.contains(" ")) 
+            {
+                System.out.println("\u001B[31mHost cannot contain spaces, please try again!\u001B[0m");
+            }
+            // user typed a valid server name (syntaxwise)
+            else 
+            {
+                break;
+            }
+        }
+
+        System.out.println("\u001B[34mEnter the port you want to connect to (587): \u001B[0m");
+        int port;
+        while (true) 
+        {
+            String portNumber = scanner.nextLine();
+            if (portNumber.isEmpty()) 
+            {
+                port = 587;
+                break;
+            }
+            try 
+            {
+                port = Integer.parseInt(portNumber);
+                break;
+            } 
+            catch (NumberFormatException e) 
+            {
+                System.out.println("\u001B[31mOnly numbers are valid inputs, please try again!\u001B[0m");
+            }
+        }
+
+
+        System.out.println("\u001B[34mEnter your email address ('max.mustermensch@uni-jena.de'): \u001B[0m");
+        String email;
+        while (true) 
+        {
+            email = scanner.nextLine();
+
+            if (email.isEmpty()) 
+            {
+                System.out.println("\u001B[31mNo email entered, please try again!\u001B[0m");
             }
 
-            System.out.println("\u001B[34mEnter the port you want to connect to (587): \u001B[0m");
-            int port;
-            while (true) 
+            if (email.contains("@")) 
             {
-                String portNumber = scanner.nextLine();
-                if (portNumber.isEmpty()) 
-                {
-                    port = 587;
-                    break;
-                }
-                try 
-                {
-                    port = Integer.parseInt(portNumber);
-                    break;
-                } 
-                catch (NumberFormatException e) 
-                {
-                    System.out.println("\u001B[31mOnly numbers are valid inputs, please try again!\u001B[0m");
-                }
-            }
-
-
-            System.out.println("\u001B[34mEnter your email address ('max.mustermensch@uni-jena.de'): \u001B[0m");
-            String email;
-            while (true) 
+                break;
+            } 
+            else 
             {
-                email = scanner.nextLine();
-
-                if (email.isEmpty()) 
-                {
-                    //remove later
-                    email = "patrick.stahl@uni-jena.de";
-                    //System.out.println("\u001B[31mNo email entered, please try again!\u001B[0m");
-                }
-
-                if (email.contains("@")) 
-                {
-                    break;
-                } 
-                else 
-                {
-                    System.out.println("\u001B[31mNo valid email entered, please try again!\u001B[0m");
-                }
+                System.out.println("\u001B[31mNo valid email entered, please try again!\u001B[0m");
             }
-            
-            // Get the password that the user wants to use
-            System.out.println("\u001B[34mEnter your password ('password'): \u001B[0m");
-            String password;
-            while (true) 
+        }
+        
+        // Get the password that the user wants to use
+        System.out.println("\u001B[34mEnter your password ('password'): \u001B[0m");
+        String password;
+        while (true) 
+        {
+            password = new String(System.console().readPassword());
+
+            // if user doesnt enter a password he has to try again until he does
+            if (password.isEmpty()) 
             {
-                password = new String(System.console().readPassword());
-
-                // if user doesnt enter a password he has to try again until he does
-                if (password.isEmpty()) 
-                {
-                    password = "";
-                    break;
-                    //System.out.println("\u001B[31mNo password entered, please try again!\u001B[0m");
-                } 
-                else 
-                {
-                    break;
-                }
+                System.out.println("\u001B[31mNo password entered, please try again!\u001B[0m");
+            } 
+            else 
+            {
+                break;
             }
+        }
 
         client.connect(host, port);
         client.authenticate(email, password);
@@ -126,8 +122,6 @@ public class SendSocketMail
     }
 }
 
-//generell hier noch if Statements reinmachen, die sich anschauen, was der Server antwortet und entsprechend sagen, ob was schief gelaufen ist
-//ist es actually wichtig, das zu machen?
 class client
 {
 
@@ -159,7 +153,7 @@ class client
             client.quit();
             return;
         }
-        System.out.println("Connected to " + host);
+        //System.out.println("Connected to " + host);
     }
 
     public static void authenticate(String username, String password) throws IOException
@@ -195,7 +189,7 @@ class client
                 client.quit();
                 return;
             }
-            System.out.println("Authentification done");
+            //System.out.println("Authentification done");
         }
     }
 
@@ -213,10 +207,7 @@ class client
 
                 if (receiver.isEmpty()) 
                 {
-                    //change when testing is done
-                    receiver = "patrickstahl880@gmail.com";
-                    break;
-                    //System.out.println("\u001B[31mNo password entered, please try again!\u001B[0m");
+                    System.out.println("\u001B[31mNo password entered, please try again!\u001B[0m");
                 } 
                 else 
                 {
@@ -270,12 +261,6 @@ class client
             }
             out.println( "DATA" );
             status = in.readLine();
-            // if(!(status.startsWith("354")))
-            // {
-            //     System.out.println("Error, unknown state: " + status);
-            //     client.quit();
-            //     return;
-            // }
 
             System.out.println("\u001B[34mEnter the subject of the mail: \u001B[0m");
             String subject;
@@ -294,7 +279,7 @@ class client
             }
             out.println( "Subject: " + subject );
 
-            System.out.println("\u001B[34mEnter the body of the mail (type close in a new line to end your input): \u001B[0m");
+            System.out.println("\u001B[34mEnter the body of the mail (type 'close' in a new line to send): \u001B[0m");
             StringBuilder body = new StringBuilder();
 
             while(true)
@@ -312,8 +297,8 @@ class client
             }
             out.println(body);
             out.println( ".");
-            System.out.println("\u001B[34mMessage sent!\u001B[0m");
-            //das programm stirbt, wenn man den scanner zumacht, deswegen bleibt er offen :)
+            System.out.println("\u001B[32mMessage sent!\u001B[0m");
+            //program will die if the scanner is closed
             //scanner.close();
         }
     }

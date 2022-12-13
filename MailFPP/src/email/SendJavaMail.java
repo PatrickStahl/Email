@@ -22,7 +22,7 @@ public class SendJavaMail
     public static void main() throws AddressException, MessagingException
     {
 
-        System.out.println("\u001B[34mEnter the host you want to connect to ('pop3.uni-jena.de'): \u001B[0m");
+        System.out.println("\u001B[34mEnter the host you want to connect to ('smtp.uni-jena.de'): \u001B[0m");
         String host;
         Scanner scanner = new Scanner(System.in);
         while (true) 
@@ -46,7 +46,7 @@ public class SendJavaMail
         }
 
         boolean ssl = false;
-        System.out.println("\u001B[34mDo you want to connect to the server with SSL?: \u001B[0m");
+        System.out.println("\u001B[34mDo you want to connect to the server with SSL? [yes]/[no]: \u001B[0m");
         while (true) 
         {
             String answer = scanner.nextLine();
@@ -68,7 +68,7 @@ public class SendJavaMail
         }
 
 
-        System.out.println("\u001B[34mEnter the port you want to connect to (587): \u001B[0m");
+        System.out.println("\u001B[34mEnter the port you want to connect to [465]/[587]: \u001B[0m");
         int port;
         while (true) 
         {
@@ -77,11 +77,11 @@ public class SendJavaMail
             {
                 if (ssl) 
                 {
-                    port = 587;
+                    port = 465;
                 } 
                 else 
                 {
-                    port = 465;
+                    port = 587;
                 }
                 break;
             }
@@ -105,8 +105,7 @@ public class SendJavaMail
 
             if (email.isEmpty()) 
             {
-                email = "patrick.stahl@uni-jena.de";
-                //System.out.println("\u001B[31mNo email entered, please try again!\u001B[0m");
+                System.out.println("\u001B[31mNo email entered, please try again!\u001B[0m");
             }
 
             if (email.contains("@")) 
@@ -131,9 +130,7 @@ public class SendJavaMail
             // if user doesnt enter a password he has to try again until he does
             if (password.isEmpty()) 
             {
-                password = "";
-                break;
-                //System.out.println("\u001B[31mNo password entered, please try again!\u001B[0m");
+                System.out.println("\u001B[31mNo password entered, please try again!\u001B[0m");
             } 
             else 
             {
@@ -148,7 +145,6 @@ public class SendJavaMail
         Properties prop = new Properties();
         prop.put("mail.smtp.auth", true);
         prop.put("mail.smtp.host", host);
-        prop.put("mail.smtp.port", port);
         
 
         if(ssl == true)
@@ -156,6 +152,11 @@ public class SendJavaMail
             prop.put("mali.smtp.ssl.enable", "true");
             prop.put("mail.smtp.ssl.trust", host);
             prop.put("mail.smtp.starttls.enable", "true");
+            prop.put("mail.smtp.ssl.socketFactory.port", Integer.toString(port));
+        }
+        else
+        {
+            prop.put("mail.smtp.port", Integer.toString(port));
         }
 
         Session session = Session.getInstance(prop, new Authenticator() 
@@ -204,12 +205,9 @@ class sendMail
         {
             receiver = scanner.nextLine();
 
-            // if user doesnt enter a password he has to try again until he does
             if (receiver.isEmpty()) 
             {
-                receiver = "patrickstahl880@gmail.com";
-                break;
-                //System.out.println("\u001B[31mNo password entered, please try again!\u001B[0m");
+                System.out.println("\u001B[31mNo receiver entered, please try again!\u001B[0m");
             } 
             else 
             {
@@ -263,9 +261,8 @@ class sendMail
 
 
         //cant contain umlauts
-        System.out.println("\u001B[34mEnter the body of the mail (type enter + close + enter to finish): \u001B[0m");
+        System.out.println("\u001B[34mEnter the body of the mail (type 'close' in a new line to send): \u001B[0m");
         StringBuilder body = new StringBuilder();
-        //boolean close = false;
 
         while(true)
         {
@@ -291,6 +288,6 @@ class sendMail
 
         Transport.send(message);
 
-        System.out.println("\u001B[34mMessage sent!\u001B[0m");
+        System.out.println("\u001B[32mMessage sent!\u001B[0m");
     }
 }
