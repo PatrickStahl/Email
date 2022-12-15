@@ -274,7 +274,7 @@ class sendMail
             else
             {
                 body.append(line);
-                body.append("\n");
+                body.append("<br>");
             }
         }
 
